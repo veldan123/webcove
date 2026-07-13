@@ -3,11 +3,24 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand — stained-glass indigo (seed oklch 0.45 0.18 270) */
+  --primary: oklch(0.5 0.2 272);
+  --primary-strong: oklch(0.42 0.19 272);
+  --primary-soft: oklch(0.95 0.03 272);
+  --accent: oklch(0.62 0.17 300); /* iris-violet lift */
+  --glow-a: oklch(0.72 0.14 272);
+  --glow-b: oklch(0.75 0.13 310);
+  --glow-c: oklch(0.8 0.1 220);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,6 +29,14 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --primary: oklch(0.68 0.17 272);
+    --primary-strong: oklch(0.76 0.15 272);
+    --primary-soft: oklch(0.24 0.06 272);
+    --accent: oklch(0.74 0.15 300);
+    --glow-a: oklch(0.45 0.16 272);
+    --glow-b: oklch(0.42 0.15 310);
+    --glow-c: oklch(0.4 0.12 220);
   }
 }
 
@@ -23,4 +44,39 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+/* ---- Scroll reveal ----
+   Visible by default (no-JS / crawlers / reduced motion see everything).
+   The `js-reveal` class is added on the client, which arms the hidden state;
+   IntersectionObserver then reveals elements as they enter the viewport. */
+[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+.js-reveal [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.js-reveal [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

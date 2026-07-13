@@ -43,7 +43,7 @@ export default async function DashboardPage() {
           )}
           <Link
             href="/dashboard/new"
-            className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-strong"
           >
             + New site
           </Link>
@@ -59,7 +59,7 @@ export default async function DashboardPage() {
           </p>
           <Link
             href="/dashboard/new"
-            className="mt-6 inline-block rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90"
+            className="mt-6 inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-strong"
           >
             Create your first site
           </Link>

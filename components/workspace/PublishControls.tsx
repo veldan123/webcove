@@ -83,7 +83,7 @@ export function PublishControls({
         <button
           onClick={publish}
           disabled={loading}
-          className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-strong disabled:opacity-50"
           title={
             subscriptionStatus !== "active"
               ? "You'll be taken to choose a plan"
