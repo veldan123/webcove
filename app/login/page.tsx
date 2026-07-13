@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -47,16 +48,24 @@ function LoginForm() {
       if (error) setError(error.message);
       else window.location.href = redirect;
     } else {
-      const { error } = await supabase.auth.signUp({
+      // Create the account (auto-confirmed) via our server route, then sign in.
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Could not create your account.");
+        setLoading(false);
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { emailRedirectTo: callbackUrl() },
       });
       if (error) setError(error.message);
-      else
-        setMessage(
-          "Check your email to confirm your account, then sign in."
-        );
+      else window.location.href = redirect;
     }
     setLoading(false);
   }
@@ -98,6 +107,16 @@ function LoginForm() {
       </div>
 
       <form onSubmit={handleEmailAuth} className="space-y-3">
+        {mode === "signup" && (
+          <input
+            type="text"
+            required
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border border-foreground/15 bg-transparent px-3 py-2.5 outline-none focus:border-foreground/40"
+          />
+        )}
         <input
           type="email"
           required
