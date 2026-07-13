@@ -1,0 +1,156 @@
+"use client";
+
+import { Suspense, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/dashboard";
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const supabase = createClient();
+
+  const callbackUrl = () => {
+    const base =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (typeof window !== "undefined" ? window.location.origin : "");
+    return `${base}/auth/callback?redirect=${encodeURIComponent(redirect)}`;
+  };
+
+  async function signInWithGoogle() {
+    setError(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: callbackUrl() },
+    });
+    if (error) setError(error.message);
+  }
+
+  async function handleEmailAuth(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    if (mode === "signin") {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) setError(error.message);
+      else window.location.href = redirect;
+    } else {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: callbackUrl() },
+      });
+      if (error) setError(error.message);
+      else
+        setMessage(
+          "Check your email to confirm your account, then sign in."
+        );
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-6 py-16">
+      <Link
+        href="/"
+        className="mb-8 text-center text-lg font-semibold tracking-tight"
+      >
+        Webcove
+      </Link>
+
+      <h1 className="text-center text-2xl font-semibold tracking-tight">
+        {mode === "signin" ? "Sign in" : "Create your account"}
+      </h1>
+      <p className="mt-2 text-center text-sm text-foreground/60">
+        Generate and preview sites for free. Subscribe when you're ready to
+        publish.
+      </p>
+
+      <button
+        onClick={signInWithGoogle}
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/15 px-4 py-2.5 font-medium hover:bg-foreground/5"
+      >
+        <span
+          aria-hidden
+          className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-xs text-background"
+        >
+          G
+        </span>
+        Continue with Google
+      </button>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-foreground/40">
+        <span className="h-px flex-1 bg-foreground/10" />
+        or
+        <span className="h-px flex-1 bg-foreground/10" />
+      </div>
+
+      <form onSubmit={handleEmailAuth} className="space-y-3">
+        <input
+          type="email"
+          required
+          placeholder="you@business.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-lg border border-foreground/15 bg-transparent px-3 py-2.5 outline-none focus:border-foreground/40"
+        />
+        <input
+          type="password"
+          required
+          minLength={6}
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-lg border border-foreground/15 bg-transparent px-3 py-2.5 outline-none focus:border-foreground/40"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-foreground px-4 py-2.5 font-medium text-background hover:opacity-90 disabled:opacity-50"
+        >
+          {loading
+            ? "…"
+            : mode === "signin"
+              ? "Sign in"
+              : "Create account"}
+        </button>
+      </form>
+
+      {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+      {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
+
+      <button
+        onClick={() => {
+          setMode(mode === "signin" ? "signup" : "signin");
+          setError(null);
+          setMessage(null);
+        }}
+        className="mt-6 text-center text-sm text-foreground/60 hover:text-foreground"
+      >
+        {mode === "signin"
+          ? "Don't have an account? Sign up"
+          : "Already have an account? Sign in"}
+      </button>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
