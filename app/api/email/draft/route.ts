@@ -9,7 +9,8 @@ export const maxDuration = 60;
 const bodySchema = z.object({
   recipientBusinessName: z.string().min(1).max(160),
   priceQuoted: z.number().nonnegative(),
-  recurringFee: z.number().nonnegative(),
+  recurringFee: z.number().nonnegative().nullable().optional(),
+  recurringPeriod: z.enum(["month", "year"]).optional(),
 });
 
 export async function POST(request: Request) {

@@ -40,6 +40,7 @@ export default async function WorkspacePage({
   const { count: publishedCount } = await supabase
     .from("sites")
     .select("id", { count: "exact", head: true })
+    .eq("owner_id", session.userId)
     .eq("published", true);
 
   const usage = usageSummary(session.profile, publishedCount ?? 0);

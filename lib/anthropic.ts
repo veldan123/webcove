@@ -213,13 +213,17 @@ export async function editPage(input: {
 export async function draftColdEmail(input: {
   recipientBusinessName: string;
   priceQuoted: number;
-  recurringFee: number;
+  recurringFee?: number | null;
+  recurringPeriod?: "month" | "year";
   senderContext?: string;
 }): Promise<string> {
+  const hasRecurring = !!input.recurringFee && input.recurringFee > 0;
   const userMessage = [
     `Recipient business: ${input.recipientBusinessName}`,
     `One-time build price: $${input.priceQuoted}`,
-    `Recurring monthly hosting fee: $${input.recurringFee}`,
+    hasRecurring
+      ? `Recurring hosting fee: $${input.recurringFee} per ${input.recurringPeriod ?? "month"}`
+      : `Recurring fee: NONE — this is a one-time project with no ongoing charges.`,
     input.senderContext ? `Extra context: ${input.senderContext}` : "",
     ``,
     `Write the email body now.`,

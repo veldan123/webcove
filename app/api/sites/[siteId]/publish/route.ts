@@ -78,6 +78,7 @@ export async function POST(
     const { count: publishedCount } = await supabase
       .from("sites")
       .select("id", { count: "exact", head: true })
+      .eq("owner_id", userId)
       .eq("published", true);
 
     if ((publishedCount ?? 0) >= limits.maxPublishedSites) {

@@ -16,6 +16,10 @@ export default async function DashboardPage() {
   const { data: sites } = await supabase
     .from("sites")
     .select("*")
+    // Explicitly scope to the current user. RLS also allows reading any
+    // *published* site (for the public pages), so without this filter another
+    // user's published site would leak into this list.
+    .eq("owner_id", session.userId)
     .order("created_at", { ascending: false })
     .returns<SiteRow[]>();
 
