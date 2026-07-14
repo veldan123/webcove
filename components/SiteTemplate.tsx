@@ -137,11 +137,19 @@ export function SiteTemplate({
   const contactPage = nav?.find((n) => n.slug === "contact");
   const ctaHref = hasContactSection
     ? "#contact"
-    : contactPage && basePath
+    : contactPage && basePath !== undefined
       ? `${basePath}/contact`
       : contactPage
         ? "#"
         : null;
+
+  // Build a nav link. `basePath` undefined = preview (no links). "" = the site
+  // is at the domain root (custom domain). "/slug" = under webcove.io/[slug].
+  const linkFor = (slug: string) => {
+    if (basePath === undefined) return "#";
+    if (slug === "home") return basePath || "/";
+    return `${basePath}/${slug}`;
+  };
 
   return (
     <div
@@ -167,13 +175,7 @@ export function SiteTemplate({
             {nav.map((item) => (
               <a
                 key={item.slug}
-                href={
-                  basePath
-                    ? item.slug === "home"
-                      ? basePath
-                      : `${basePath}/${item.slug}`
-                    : "#"
-                }
+                href={linkFor(item.slug)}
                 className="opacity-70 transition-opacity hover:opacity-100"
               >
                 {item.title}

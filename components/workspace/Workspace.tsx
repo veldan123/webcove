@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SiteTemplate } from "@/components/SiteTemplate";
 import { ChatSidebar } from "@/components/workspace/ChatSidebar";
 import { PublishControls } from "@/components/workspace/PublishControls";
+import { CustomDomainPanel } from "@/components/workspace/CustomDomainPanel";
 import type { PageContent, PageRow, SiteTheme } from "@/lib/types";
 import type { Plan, SubscriptionStatus } from "@/lib/plans";
 
@@ -19,6 +20,8 @@ export function Workspace({
   subscriptionStatus,
   usageLabel,
   usageAtLimit,
+  customDomain,
+  customDomainVerified,
 }: {
   siteId: string;
   slug: string;
@@ -30,12 +33,15 @@ export function Workspace({
   subscriptionStatus: SubscriptionStatus;
   usageLabel: string;
   usageAtLimit: boolean;
+  customDomain: string | null;
+  customDomainVerified: boolean;
 }) {
   const [pages, setPages] = useState<PageRow[]>(initialPages);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialPages[0]?.id ?? null
   );
   const [published, setPublished] = useState(initialPublished);
+  const [showDomain, setShowDomain] = useState(false);
 
   const selectedPage = useMemo(
     () => pages.find((p) => p.id === selectedId) ?? pages[0] ?? null,
@@ -77,6 +83,16 @@ export function Workspace({
           <span className="hidden text-xs text-foreground/50 sm:inline">
             {usageLabel}
           </span>
+          <button
+            onClick={() => setShowDomain(true)}
+            className="rounded-lg border border-foreground/15 px-3 py-2 text-sm hover:bg-foreground/5"
+            title="Connect a custom domain"
+          >
+            🌐 Domain
+            {customDomainVerified && (
+              <span className="ml-1 text-green-500">●</span>
+            )}
+          </button>
           {published && (
             <a
               href={publicUrl}
@@ -153,6 +169,15 @@ export function Workspace({
           />
         </aside>
       </div>
+
+      {showDomain && (
+        <CustomDomainPanel
+          siteId={siteId}
+          initialDomain={customDomain}
+          initialVerified={customDomainVerified}
+          onClose={() => setShowDomain(false)}
+        />
+      )}
     </div>
   );
 }

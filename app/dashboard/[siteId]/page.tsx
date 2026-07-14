@@ -59,6 +59,8 @@ export default async function WorkspacePage({
       subscriptionStatus={session.profile.subscription_status}
       usageLabel={usage.label}
       usageAtLimit={usage.atLimit}
+      customDomain={site.custom_domain}
+      customDomainVerified={site.custom_domain_verified}
     />
   );
 }

@@ -142,6 +142,8 @@ export interface SiteRow {
   generated_content: { theme: SiteTheme } | null;
   published: boolean;
   published_at: string | null;
+  custom_domain: string | null;
+  custom_domain_verified: boolean;
   created_at: string;
   updated_at: string;
 }
