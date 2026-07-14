@@ -8,7 +8,9 @@ import {
   subscriptionPeriodEnd,
 } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Plan, SubscriptionStatus } from "@/lib/plans";
+import { isResendConfigured } from "@/lib/resend";
+import { sendPlanThankYouEmail } from "@/lib/email";
+import { PLAN_LABELS, type Plan, type SubscriptionStatus } from "@/lib/plans";
 
 // Stripe requires the raw request body to verify the signature.
 export async function POST(request: Request) {
@@ -88,6 +90,21 @@ export async function POST(request: Request) {
         };
         if (userId) await patchById(userId, patch);
         else await patchByCustomer(customerId, patch);
+
+        // Thank-you email (best effort — never fail the webhook over email).
+        if (isResendConfigured() && plan && plan !== "none") {
+          const email =
+            s.customer_details?.email || (s.customer_email as string | null);
+          if (email) {
+            try {
+              const name =
+                (s.customer_details?.name as string | undefined) || undefined;
+              await sendPlanThankYouEmail(email, PLAN_LABELS[plan], name);
+            } catch (e) {
+              console.error("Thank-you email failed:", e);
+            }
+          }
+        }
         break;
       }
 

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isResendConfigured } from "@/lib/resend";
+import { sendVerificationCodeEmail } from "@/lib/email";
+import { generateCode, storeCode } from "@/lib/verification";
 
 // Creates a new account that is immediately usable — no email-confirmation step.
 // Uses the service-role admin API to create the user with email_confirm: true,
@@ -21,10 +24,12 @@ export async function POST(request: Request) {
   const { email, password, name } = parsed.data;
 
   const admin = createAdminClient();
-  const { error } = await admin.auth.admin.createUser({
+
+  // Create the user UNconfirmed; we confirm after they enter the emailed code.
+  const { data: created, error } = await admin.auth.admin.createUser({
     email,
     password,
-    email_confirm: true, // mark confirmed so they can sign in right away
+    email_confirm: false,
     user_metadata: name ? { full_name: name } : {},
   });
 
@@ -45,5 +50,21 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  const userId = created.user!.id;
+
+  // If Resend is set up, email a 4-digit code and require verification.
+  if (isResendConfigured()) {
+    const code = generateCode();
+    await storeCode(email, userId, code);
+    const { error: sendErr } = await sendVerificationCodeEmail(email, code, name);
+    if (!sendErr) {
+      return NextResponse.json({ needsVerification: true });
+    }
+    console.error("Verification email failed, auto-confirming instead:", sendErr);
+  }
+
+  // Fallback (Resend not configured or send failed): confirm immediately so
+  // sign-up still works, and let the client sign in directly.
+  await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+  return NextResponse.json({ needsVerification: false });
 }

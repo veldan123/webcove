@@ -15,6 +15,9 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Email verification step (manual sign-up with a 4-digit code)
+  const [verifying, setVerifying] = useState(false);
+  const [code, setCode] = useState("");
 
   const supabase = createClient();
 
@@ -60,6 +63,12 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+      if (data.needsVerification) {
+        // Show the code-entry step; sign-in happens after verification.
+        setVerifying(true);
+        setLoading(false);
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -68,6 +77,42 @@ function LoginForm() {
       else window.location.href = redirect;
     }
     setLoading(false);
+  }
+
+  async function verifyCodeSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const res = await fetch("/api/auth/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "Could not verify that code.");
+      setLoading(false);
+      return;
+    }
+    // Confirmed — sign in with the password from sign-up.
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) setError(error.message);
+    else window.location.href = redirect;
+    setLoading(false);
+  }
+
+  async function resendCode() {
+    setError(null);
+    setMessage(null);
+    await fetch("/api/auth/resend-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setMessage("A new code is on its way.");
   }
 
   return (
@@ -79,9 +124,64 @@ function LoginForm() {
         Webcove
       </Link>
 
-      <h1 className="text-center text-2xl font-semibold tracking-tight">
-        {mode === "signin" ? "Sign in" : "Create your account"}
-      </h1>
+      {verifying ? (
+        <form onSubmit={verifyCodeSubmit} className="mt-8">
+          <h1 className="text-center text-2xl font-semibold tracking-tight">
+            Check your email
+          </h1>
+          <p className="mt-2 text-center text-sm text-foreground/60">
+            We sent a 4-digit code to{" "}
+            <span className="font-medium text-foreground/80">{email}</span>.
+            Enter it below to finish creating your account.
+          </p>
+          <input
+            inputMode="numeric"
+            autoFocus
+            maxLength={4}
+            required
+            placeholder="1234"
+            value={code}
+            onChange={(e) =>
+              setCode(e.target.value.replace(/\D/g, "").slice(0, 4))
+            }
+            className="mt-6 w-full rounded-lg border border-foreground/15 bg-transparent px-3 py-3 text-center text-2xl tracking-[0.5em] outline-none focus:border-foreground/40"
+          />
+          <button
+            type="submit"
+            disabled={loading || code.length !== 4}
+            className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white hover:bg-primary-strong disabled:opacity-50"
+          >
+            {loading ? "Verifying…" : "Verify & continue"}
+          </button>
+          {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+          {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
+          <div className="mt-6 flex items-center justify-between text-sm text-foreground/60">
+            <button
+              type="button"
+              onClick={resendCode}
+              className="hover:text-foreground"
+            >
+              Resend code
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setVerifying(false);
+                setCode("");
+                setError(null);
+                setMessage(null);
+              }}
+              className="hover:text-foreground"
+            >
+              ← Back
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <h1 className="text-center text-2xl font-semibold tracking-tight">
+            {mode === "signin" ? "Sign in" : "Create your account"}
+          </h1>
       <p className="mt-2 text-center text-sm text-foreground/60">
         Generate and preview sites for free. Subscribe when you're ready to
         publish.
@@ -162,6 +262,8 @@ function LoginForm() {
           ? "Don't have an account? Sign up"
           : "Already have an account? Sign in"}
       </button>
+        </>
+      )}
     </div>
   );
 }

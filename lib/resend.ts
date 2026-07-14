@@ -17,3 +17,11 @@ export function getResend(): Resend {
 export function fromAddress(): string {
   return process.env.RESEND_FROM_EMAIL || "Webcove <onboarding@resend.dev>";
 }
+
+// True only when a real Resend key is configured (not the placeholder). Gates
+// the email-verification + thank-you flows so the app keeps working before
+// Resend is set up.
+export function isResendConfigured(): boolean {
+  const key = process.env.RESEND_API_KEY;
+  return !!key && key.startsWith("re_") && key !== "re_placeholder";
+}
