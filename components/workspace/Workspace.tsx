@@ -42,6 +42,11 @@ export function Workspace({
   );
   const [published, setPublished] = useState(initialPublished);
   const [showDomain, setShowDomain] = useState(false);
+  const [themeState, setThemeState] = useState<SiteTheme | null>(theme);
+
+  function applyThemePatch(patch: Partial<SiteTheme>) {
+    setThemeState((prev) => ({ ...(prev ?? {}), ...patch }) as SiteTheme);
+  }
 
   const selectedPage = useMemo(
     () => pages.find((p) => p.id === selectedId) ?? pages[0] ?? null,
@@ -147,7 +152,7 @@ export function Workspace({
           <div className="mx-auto max-w-4xl overflow-hidden rounded-xl border border-foreground/10 bg-white shadow-sm">
             {selectedPage ? (
               <SiteTemplate
-                theme={theme}
+                theme={themeState}
                 businessName={businessName}
                 page={selectedPage.content}
                 nav={nav}
@@ -166,6 +171,7 @@ export function Workspace({
             siteId={siteId}
             page={selectedPage}
             onPatched={applyPageContent}
+            onThemePatch={applyThemePatch}
           />
         </aside>
       </div>

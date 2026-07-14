@@ -10,6 +10,7 @@ export const maxDuration = 60;
 const bodySchema = z.object({
   pageId: z.string().uuid(),
   message: z.string().min(1).max(2000),
+  imageUrl: z.string().url().optional(),
 });
 
 export async function POST(
@@ -27,7 +28,7 @@ export async function POST(
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
-  const { pageId, message } = parsed.data;
+  const { pageId, message, imageUrl } = parsed.data;
 
   const supabase = await createClient();
 
@@ -35,9 +36,13 @@ export async function POST(
   // sites, so we can't rely on the read succeeding — check ownership).
   const { data: site } = await supabase
     .from("sites")
-    .select("id, owner_id")
+    .select("id, owner_id, generated_content")
     .eq("id", siteId)
-    .single<{ id: string; owner_id: string }>();
+    .single<{
+      id: string;
+      owner_id: string;
+      generated_content: { theme?: Record<string, unknown> } | null;
+    }>();
   if (!site || site.owner_id !== session.userId) {
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
   }
@@ -52,11 +57,12 @@ export async function POST(
     return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
-  let result: { reply: string; content: typeof page.content | null };
+  let result: Awaited<ReturnType<typeof chatEdit>>;
   try {
     result = await chatEdit({
       instruction: message,
       currentContent: page.content,
+      imageUrl,
     });
   } catch (err) {
     console.error("Chat failed:", err);
@@ -66,7 +72,7 @@ export async function POST(
     );
   }
 
-  // Persist only when the assistant actually changed the page.
+  // Persist page content changes.
   if (result.content) {
     const { error: updateError } = await supabase
       .from("pages")
@@ -81,5 +87,27 @@ export async function POST(
     }
   }
 
-  return NextResponse.json({ reply: result.reply, content: result.content });
+  // Persist site-wide theme changes (logo, colors, template).
+  let updatedTheme: Record<string, unknown> | null = null;
+  if (result.themePatch && Object.keys(result.themePatch).length > 0) {
+    const gc = site.generated_content ?? {};
+    updatedTheme = { ...(gc.theme ?? {}), ...result.themePatch };
+    const { error: themeError } = await supabase
+      .from("sites")
+      .update({ generated_content: { ...gc, theme: updatedTheme } })
+      .eq("id", siteId);
+    if (themeError) {
+      console.error("Failed to save theme change:", themeError);
+      return NextResponse.json(
+        { error: "Could not save the style change." },
+        { status: 500 }
+      );
+    }
+  }
+
+  return NextResponse.json({
+    reply: result.reply,
+    content: result.content,
+    theme: updatedTheme,
+  });
 }

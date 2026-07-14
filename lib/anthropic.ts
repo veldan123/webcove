@@ -6,7 +6,13 @@ import {
   EDIT_CHAT_SYSTEM_PROMPT,
   COLD_EMAIL_SYSTEM_PROMPT,
 } from "./prompts";
-import type { ContactInfo, GeneratedSite, PageContent } from "./types";
+import type {
+  ContactInfo,
+  GeneratedSite,
+  PageContent,
+  SiteTheme,
+} from "./types";
+import { logoUrlFor } from "./images";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
@@ -49,7 +55,9 @@ const sectionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("gallery"),
     heading: z.string(),
-    items: z.array(z.object({ caption: z.string() })),
+    items: z.array(
+      z.object({ caption: z.string(), imageUrl: z.string().url().optional() })
+    ),
   }),
   z.object({
     type: z.literal("cta"),
@@ -79,6 +87,7 @@ const generatedSiteSchema = z.object({
     backgroundColor: hex,
     textColor: hex,
     fontFamily: z.enum(["sans", "serif"]).optional(),
+    logoUrl: z.string().url().optional(),
   }),
   pages: z
     .array(
@@ -167,7 +176,15 @@ export async function generateSite(input: {
     .sort((a, b) => a.order - b.order)
     .slice(0, input.maxPages);
 
-  return { theme: result.data.theme, pages };
+  // Auto-generate a logo via Pollinations unless the model provided one.
+  const theme: SiteTheme = {
+    ...result.data.theme,
+    logoUrl:
+      result.data.theme.logoUrl ||
+      logoUrlFor(input.businessName, input.businessType),
+  };
+
+  return { theme, pages };
 }
 
 /**
@@ -175,18 +192,42 @@ export async function generateSite(input: {
  * Returns a friendly `reply` plus `content` (the updated page) when a change
  * was made, or `content: null` when the user was only chatting/asking.
  */
+const themePatchSchema = z
+  .object({
+    template: z
+      .enum(["aurora", "editorial", "bold", "playful", "minimal"])
+      .optional(),
+    primaryColor: hex.optional(),
+    accentColor: hex.optional(),
+    backgroundColor: hex.optional(),
+    textColor: hex.optional(),
+    logoUrl: z.string().url().optional(),
+  })
+  .nullable()
+  .optional();
+
 export async function chatEdit(input: {
   instruction: string;
   currentContent: PageContent;
-}): Promise<{ reply: string; content: PageContent | null }> {
+  imageUrl?: string;
+}): Promise<{
+  reply: string;
+  content: PageContent | null;
+  themePatch: Partial<SiteTheme> | null;
+}> {
   const userMessage = [
     `Current page content JSON:`,
     JSON.stringify(input.currentContent),
     ``,
+    input.imageUrl
+      ? `The user attached an image. Its URL is: ${input.imageUrl}\nIf they want it used as the logo, set themePatch.logoUrl to exactly this URL. If they want it in a gallery, add a gallery item with "imageUrl" set to this URL.`
+      : ``,
     `User message: ${input.instruction}`,
     ``,
-    `Respond with the { "reply", "updatedContent" } JSON object.`,
-  ].join("\n");
+    `Respond with the { "reply", "updatedContent", "themePatch" } JSON object.`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const msg = await client().messages.create({
     model: MODEL,
@@ -207,6 +248,7 @@ export async function chatEdit(input: {
     .object({
       reply: z.string(),
       updatedContent: pageContentSchema.nullable().optional(),
+      themePatch: themePatchSchema,
     })
     .safeParse(parsed);
   if (!envelope.success) {
@@ -219,6 +261,7 @@ export async function chatEdit(input: {
   return {
     reply: envelope.data.reply,
     content: envelope.data.updatedContent ?? null,
+    themePatch: envelope.data.themePatch ?? null,
   };
 }
 

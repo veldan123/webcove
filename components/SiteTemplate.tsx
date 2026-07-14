@@ -5,6 +5,7 @@ import type {
   TemplateName,
 } from "@/lib/types";
 import type { CSSProperties } from "react";
+import { galleryImageUrl } from "@/lib/images";
 
 const DEFAULT_THEME: SiteTheme = {
   primaryColor: "#2563eb",
@@ -164,12 +165,22 @@ export function SiteTemplate({
           className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: `1px solid ${t.textColor}1a` }}
         >
-          <span
-            className={
-              tpl.eyebrow ? "text-lg font-semibold" : "text-lg font-bold"
-            }
-          >
-            {businessName}
+          <span className="flex items-center gap-2.5">
+            {t.logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={t.logoUrl}
+                alt=""
+                className="h-9 w-9 rounded-md object-contain"
+              />
+            )}
+            <span
+              className={
+                tpl.eyebrow ? "text-lg font-semibold" : "text-lg font-bold"
+              }
+            >
+              {businessName}
+            </span>
           </span>
           <div className="flex flex-wrap gap-5 text-sm">
             {nav.map((item) => (
@@ -193,6 +204,7 @@ export function SiteTemplate({
             theme={t}
             tpl={tpl}
             ctaHref={ctaHref}
+            businessName={businessName}
           />
         ))}
       </div>
@@ -257,11 +269,13 @@ function SectionRenderer({
   theme,
   tpl,
   ctaHref,
+  businessName,
 }: {
   section: Section;
   theme: SiteTheme;
   tpl: Tpl;
   ctaHref: string | null;
+  businessName: string;
 }) {
   const pad = tpl.sectionPad;
 
@@ -404,12 +418,19 @@ function SectionRenderer({
             {section.items.map((item, i) => (
               <div
                 key={i}
-                className={`flex aspect-video items-end p-4 text-sm font-medium text-white ${tpl.cardClass}`}
-                style={{
-                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                }}
+                className={`relative aspect-video overflow-hidden ${tpl.cardClass}`}
+                style={{ backgroundColor: `${theme.primaryColor}14` }}
               >
-                {item.caption}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.imageUrl || galleryImageUrl(item.caption, businessName)}
+                  alt={item.caption}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm font-medium text-white">
+                  {item.caption}
+                </div>
               </div>
             ))}
           </div>

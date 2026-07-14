@@ -48,7 +48,7 @@ export interface TestimonialsSection {
 export interface GallerySection {
   type: "gallery";
   heading: string;
-  items: { caption: string }[];
+  items: { caption: string; imageUrl?: string }[];
 }
 
 export interface CtaSection {
@@ -102,6 +102,7 @@ export interface SiteTheme {
   textColor: string; // hex
   fontFamily?: string; // "sans" | "serif" (fallback; template usually sets font)
   template?: TemplateName;
+  logoUrl?: string; // Pollinations-generated or user-uploaded logo image
 }
 
 // The full object Claude returns for a new site.

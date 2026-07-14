@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { PageContent, PageRow } from "@/lib/types";
+import { useRef, useState } from "react";
+import type { PageContent, PageRow, SiteTheme } from "@/lib/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -12,51 +12,86 @@ export function ChatSidebar({
   siteId,
   page,
   onPatched,
+  onThemePatch,
 }: {
   siteId: string;
   page: PageRow | null;
   onPatched: (pageId: string, content: PageContent) => void;
+  onThemePatch: (theme: Partial<SiteTheme>) => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [attachedUrl, setAttachedUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/uploads", { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAttachedUrl(data.url);
+        if (!input.trim()) setInput("Use this image as the logo");
+      } else {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", text: data.error || "Couldn't upload that image." },
+        ]);
+      }
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", text: "Upload failed. Please try again." },
+      ]);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!page || !input.trim() || loading) return;
+    if (!page || !input.trim() || loading || uploading) return;
 
     const instruction = input.trim();
+    const imageUrl = attachedUrl;
     setInput("");
-    setMessages((m) => [...m, { role: "user", text: instruction }]);
+    setAttachedUrl(null);
+    setMessages((m) => [
+      ...m,
+      { role: "user", text: (imageUrl ? "🖼️ " : "") + instruction },
+    ]);
     setLoading(true);
 
     try {
       const res = await fetch(`/api/sites/${siteId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageId: page.id, message: instruction }),
+        body: JSON.stringify({
+          pageId: page.id,
+          message: instruction,
+          ...(imageUrl ? { imageUrl } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setMessages((m) => [
           ...m,
-          {
-            role: "assistant",
-            text: data.error || "Sorry, I couldn't do that.",
-          },
+          { role: "assistant", text: data.error || "Sorry, I couldn't do that." },
         ]);
         return;
       }
-      // Only re-render the preview when the assistant actually edited the page.
-      if (data.content) {
-        onPatched(page.id, data.content as PageContent);
-      }
+      if (data.content) onPatched(page.id, data.content as PageContent);
+      if (data.theme) onThemePatch(data.theme as Partial<SiteTheme>);
       setMessages((m) => [
         ...m,
-        {
-          role: "assistant",
-          text: data.reply || "Done.",
-        },
+        { role: "assistant", text: data.reply || "Done." },
       ]);
     } catch {
       setMessages((m) => [
@@ -74,7 +109,7 @@ export function ChatSidebar({
         <p className="text-sm font-medium">AI assistant</p>
         <p className="text-xs text-foreground/50">
           Editing <span className="font-medium">{page?.title ?? "—"}</span>. Ask
-          for changes or ask me anything.
+          for changes, upload a logo, or ask me anything.
         </p>
       </div>
 
@@ -85,8 +120,8 @@ export function ChatSidebar({
             <ul className="space-y-1">
               <li>• “Make the headline punchier”</li>
               <li>• “Add a testimonials section”</li>
-              <li>• “Add a Get a quote button”</li>
-              <li>• “How does publishing work?”</li>
+              <li>• 📎 Upload an image → “Use this as the logo”</li>
+              <li>• “Change the primary color to green”</li>
             </ul>
           </div>
         )}
@@ -109,10 +144,27 @@ export function ChatSidebar({
         )}
       </div>
 
-      <form
-        onSubmit={send}
-        className="border-t border-foreground/10 p-3"
-      >
+      <form onSubmit={send} className="border-t border-foreground/10 p-3">
+        {attachedUrl && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-foreground/10 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={attachedUrl}
+              alt="attachment"
+              className="h-10 w-10 rounded object-cover"
+            />
+            <span className="flex-1 text-xs text-foreground/60">
+              Image attached
+            </span>
+            <button
+              type="button"
+              onClick={() => setAttachedUrl(null)}
+              className="text-xs text-foreground/50 hover:text-foreground"
+            >
+              Remove
+            </button>
+          </div>
+        )}
         <textarea
           rows={2}
           value={input}
@@ -127,13 +179,31 @@ export function ChatSidebar({
           disabled={!page || loading}
           className="w-full resize-none rounded-lg border border-foreground/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground/40 disabled:opacity-50"
         />
-        <button
-          type="submit"
-          disabled={!page || loading || !input.trim()}
-          className="mt-2 w-full rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
-        >
-          Send
-        </button>
+        <div className="mt-2 flex gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={onFile}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={!page || uploading}
+            title="Attach an image"
+            className="rounded-lg border border-foreground/15 px-3 py-2 text-sm hover:bg-foreground/5 disabled:opacity-50"
+          >
+            {uploading ? "…" : "📎"}
+          </button>
+          <button
+            type="submit"
+            disabled={!page || loading || uploading || !input.trim()}
+            className="flex-1 rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          >
+            Send
+          </button>
+        </div>
       </form>
     </div>
   );

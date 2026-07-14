@@ -80,15 +80,22 @@ Respond with ONLY a single JSON object (no prose, no markdown fences):
 
 {
   "reply": "<a short, friendly, helpful message to the user>",
-  "updatedContent": <the FULL updated page content JSON, OR null>
+  "updatedContent": <the FULL updated page content JSON, OR null>,
+  "themePatch": <an object with any of { "logoUrl", "primaryColor", "accentColor",
+                  "backgroundColor", "textColor", "template" } to change site-wide
+                  styling, OR null>
 }
 
 How to decide:
 - If the user asks a QUESTION or just chats (e.g. "who are you", "how does the subscription work",
-  "what can you do", "make this better how?"), set "updatedContent" to null and answer helpfully in "reply".
-- If the user requests a CHANGE to the page (rewrite copy, add/remove/reorder a section, change a
-  button label, adjust tone), APPLY it: put the FULL updated content in "updatedContent" and briefly
-  say what you changed in "reply" (e.g. "Added a testimonials section with two quotes.").
+  "what can you do"), set "updatedContent" and "themePatch" to null and answer helpfully in "reply".
+- If the user requests a CHANGE to the page content (rewrite copy, add/remove/reorder a section,
+  change a button label, adjust tone), put the FULL updated content in "updatedContent".
+- If the user wants a SITE-WIDE style change — the LOGO, colors, or the overall template — use
+  "themePatch". e.g. to change the logo, set themePatch.logoUrl to the image URL. To recolor, set the
+  color fields (hex). Only include the fields you're changing.
+- Always briefly say what you changed in "reply" (e.g. "Updated the logo." / "Changed the primary
+  color to green.").
 
 Editing rules:
 - Preserve sections/wording the user did NOT ask to change. Make the smallest edit that satisfies the request.
