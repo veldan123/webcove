@@ -88,12 +88,20 @@ export interface GeneratedPage {
   order: number;
 }
 
+export type TemplateName =
+  | "aurora" // modern SaaS: gradient hero, airy, rounded
+  | "editorial" // elegant serif, left-aligned, understated
+  | "bold" // high-impact, big type, solid color blocks
+  | "playful" // friendly, rounded, colorful blobs
+  | "minimal"; // lots of whitespace, tiny accents
+
 export interface SiteTheme {
   primaryColor: string; // hex, e.g. "#2563eb"
   accentColor: string; // hex
   backgroundColor: string; // hex
   textColor: string; // hex
-  fontFamily?: string; // e.g. "sans" | "serif"
+  fontFamily?: string; // "sans" | "serif" (fallback; template usually sets font)
+  template?: TemplateName;
 }
 
 // The full object Claude returns for a new site.

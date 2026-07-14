@@ -42,15 +42,21 @@ export function ChatSidebar({
           ...m,
           {
             role: "assistant",
-            text: data.error || "Sorry, I couldn't apply that.",
+            text: data.error || "Sorry, I couldn't do that.",
           },
         ]);
         return;
       }
-      onPatched(page.id, data.content as PageContent);
+      // Only re-render the preview when the assistant actually edited the page.
+      if (data.content) {
+        onPatched(page.id, data.content as PageContent);
+      }
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: "Done — updated the preview." },
+        {
+          role: "assistant",
+          text: data.reply || "Done.",
+        },
       ]);
     } catch {
       setMessages((m) => [
@@ -65,11 +71,10 @@ export function ChatSidebar({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-foreground/10 px-4 py-3">
-        <p className="text-sm font-medium">AI editor</p>
+        <p className="text-sm font-medium">AI assistant</p>
         <p className="text-xs text-foreground/50">
-          Editing{" "}
-          <span className="font-medium">{page?.title ?? "—"}</span>. Ask for
-          changes in plain English.
+          Editing <span className="font-medium">{page?.title ?? "—"}</span>. Ask
+          for changes or ask me anything.
         </p>
       </div>
 
@@ -80,7 +85,8 @@ export function ChatSidebar({
             <ul className="space-y-1">
               <li>• “Make the headline punchier”</li>
               <li>• “Add a testimonials section”</li>
-              <li>• “Change the about copy to be more formal”</li>
+              <li>• “Add a Get a quote button”</li>
+              <li>• “How does publishing work?”</li>
             </ul>
           </div>
         )}

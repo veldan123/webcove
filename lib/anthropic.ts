@@ -71,6 +71,9 @@ const pageContentSchema = z.object({ sections: z.array(sectionSchema) });
 
 const generatedSiteSchema = z.object({
   theme: z.object({
+    template: z
+      .enum(["aurora", "editorial", "bold", "playful", "minimal"])
+      .optional(),
     primaryColor: hex,
     accentColor: hex,
     backgroundColor: hex,
@@ -168,20 +171,21 @@ export async function generateSite(input: {
 }
 
 /**
- * Edit a single page's content based on a natural-language instruction.
- * Returns the full updated PageContent (patch the row with this).
+ * Conversational editor: answers questions AND edits the page.
+ * Returns a friendly `reply` plus `content` (the updated page) when a change
+ * was made, or `content: null` when the user was only chatting/asking.
  */
-export async function editPage(input: {
+export async function chatEdit(input: {
   instruction: string;
   currentContent: PageContent;
-}): Promise<PageContent> {
+}): Promise<{ reply: string; content: PageContent | null }> {
   const userMessage = [
     `Current page content JSON:`,
     JSON.stringify(input.currentContent),
     ``,
-    `Instruction: ${input.instruction}`,
+    `User message: ${input.instruction}`,
     ``,
-    `Return the complete updated content JSON only.`,
+    `Respond with the { "reply", "updatedContent" } JSON object.`,
   ].join("\n");
 
   const msg = await client().messages.create({
@@ -196,15 +200,26 @@ export async function editPage(input: {
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new Error("Claude returned invalid JSON for the page edit");
+    throw new Error("Claude returned invalid JSON for the chat");
   }
-  const result = pageContentSchema.safeParse(parsed);
-  if (!result.success) {
+
+  const envelope = z
+    .object({
+      reply: z.string(),
+      updatedContent: pageContentSchema.nullable().optional(),
+    })
+    .safeParse(parsed);
+  if (!envelope.success) {
     throw new Error(
-      "Edited page did not match the content schema: " + result.error.message
+      "Chat response did not match the expected shape: " +
+        envelope.error.message
     );
   }
-  return result.data;
+
+  return {
+    reply: envelope.data.reply,
+    content: envelope.data.updatedContent ?? null,
+  };
 }
 
 /**

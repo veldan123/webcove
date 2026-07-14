@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { editPage } from "@/lib/anthropic";
-import type { PageContent, PageRow } from "@/lib/types";
+import { chatEdit } from "@/lib/anthropic";
+import type { PageRow } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -52,31 +52,34 @@ export async function POST(
     return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
-  let updated: PageContent;
+  let result: { reply: string; content: typeof page.content | null };
   try {
-    updated = await editPage({
+    result = await chatEdit({
       instruction: message,
       currentContent: page.content,
     });
   } catch (err) {
-    console.error("Edit chat failed:", err);
+    console.error("Chat failed:", err);
     return NextResponse.json(
-      { error: "The AI couldn't apply that change. Try rephrasing." },
+      { error: "The AI had trouble with that. Try rephrasing." },
       { status: 502 }
     );
   }
 
-  const { error: updateError } = await supabase
-    .from("pages")
-    .update({ content: updated })
-    .eq("id", pageId);
-  if (updateError) {
-    console.error("Failed to save page edit:", updateError);
-    return NextResponse.json(
-      { error: "Could not save the change." },
-      { status: 500 }
-    );
+  // Persist only when the assistant actually changed the page.
+  if (result.content) {
+    const { error: updateError } = await supabase
+      .from("pages")
+      .update({ content: result.content })
+      .eq("id", pageId);
+    if (updateError) {
+      console.error("Failed to save page edit:", updateError);
+      return NextResponse.json(
+        { error: "Could not save the change." },
+        { status: 500 }
+      );
+    }
   }
 
-  return NextResponse.json({ content: updated });
+  return NextResponse.json({ reply: result.reply, content: result.content });
 }
