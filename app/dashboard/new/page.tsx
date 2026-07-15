@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { GenerationSplash } from "@/components/GenerationSplash";
 
 export default function NewSitePage() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function NewSitePage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
+      {loading && <GenerationSplash />}
       <Link
         href="/dashboard"
         className="text-sm text-foreground/60 hover:text-foreground"
