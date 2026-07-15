@@ -9,7 +9,10 @@ export const maxDuration = 60;
 
 const bodySchema = z.object({
   pageId: z.string().uuid(),
-  message: z.string().min(1).max(2000),
+  message: z
+    .string()
+    .min(1)
+    .max(12000, "That message is very long — please shorten it a bit."),
   imageUrl: z.string().url().optional(),
 });
 
@@ -26,7 +29,10 @@ export async function POST(
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || "Invalid input" },
+      { status: 400 }
+    );
   }
   const { pageId, message, imageUrl } = parsed.data;
 

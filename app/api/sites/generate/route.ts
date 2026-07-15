@@ -10,13 +10,13 @@ import type { ContactInfo } from "@/lib/types";
 export const maxDuration = 60; // generation can take a while
 
 const bodySchema = z.object({
-  businessName: z.string().min(1).max(120),
-  businessType: z.string().min(1).max(120),
-  businessDescription: z.string().min(1).max(4000),
-  phone: z.string().max(60).optional(),
+  businessName: z.string().min(1).max(200),
+  businessType: z.string().min(1).max(200),
+  businessDescription: z.string().min(1).max(10000),
+  phone: z.string().max(120).optional(),
   email: z.string().max(200).optional(),
-  address: z.string().max(300).optional(),
-  tagline: z.string().max(200).optional(),
+  address: z.string().max(400).optional(),
+  tagline: z.string().max(400).optional(),
 });
 
 export async function POST(request: Request) {
