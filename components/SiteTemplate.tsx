@@ -6,6 +6,7 @@ import type {
 } from "@/lib/types";
 import type { CSSProperties } from "react";
 import { galleryImageUrl, cardImageUrl, heroImageUrl } from "@/lib/images";
+import { SiteImage } from "@/components/SiteImage";
 
 const DEFAULT_THEME: SiteTheme = {
   primaryColor: "#2563eb",
@@ -247,11 +248,13 @@ function SectionRenderer({
       };
       return (
         <section className="relative overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <SiteImage
             src={bg}
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
+            fallback={{
+              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+            }}
           />
           <div
             className="absolute inset-0"
@@ -351,8 +354,14 @@ function SectionRenderer({
                   style={{ border: `1px solid ${theme.textColor}14`, backgroundColor: theme.backgroundColor }}
                 >
                   <div className="relative aspect-[4/3]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img} alt={item.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    <SiteImage
+                      src={img}
+                      alt={item.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      fallback={{
+                        background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                      }}
+                    />
                     {item.badge && (
                       <span
                         className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold text-white"
@@ -430,8 +439,14 @@ function SectionRenderer({
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {section.items.map((item, i) => (
               <div key={i} className={`relative aspect-video overflow-hidden ${tpl.cardClass}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.imageUrl || galleryImageUrl(item.caption, businessName)} alt={item.caption} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                <SiteImage
+                  src={item.imageUrl || galleryImageUrl(item.caption, businessName)}
+                  alt={item.caption}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  fallback={{
+                    background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                  }}
+                />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm font-medium text-white">
                   {item.caption}
                 </div>
