@@ -12,7 +12,12 @@ import type {
   PageContent,
   SiteTheme,
 } from "./types";
-import { logoUrlFor, heroImageUrl, cardImageUrl } from "./images";
+import {
+  logoUrlFor,
+  heroImageUrl,
+  cardImageUrl,
+  galleryImageUrl,
+} from "./images";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
@@ -222,6 +227,16 @@ export async function generateSite(input: {
             item.imageUrl = cardImageUrl(
               item.imagePrompt || `${item.title}, ${input.businessType}`,
               input.businessName + item.title
+            );
+          }
+        }
+      }
+      if (section.type === "gallery") {
+        for (const item of section.items) {
+          if (!item.imageUrl) {
+            item.imageUrl = galleryImageUrl(
+              item.caption,
+              input.businessName + item.caption
             );
           }
         }
