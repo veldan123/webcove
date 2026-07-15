@@ -7,6 +7,7 @@ import type {
 import type { CSSProperties } from "react";
 import { galleryImageUrl, cardImageUrl, heroImageUrl } from "@/lib/images";
 import { SiteImage } from "@/components/SiteImage";
+import { SiteMotion } from "@/components/SiteMotion";
 
 const DEFAULT_THEME: SiteTheme = {
   primaryColor: "#2563eb",
@@ -165,16 +166,18 @@ export function SiteTemplate({
         </nav>
       )}
 
+      <SiteMotion />
       <div>
         {page.sections.map((section, i) => (
-          <SectionRenderer
-            key={i}
-            section={section}
-            theme={t}
-            tpl={tpl}
-            businessName={businessName}
-            resolveHref={resolveHref}
-          />
+          <div key={i} data-reveal={section.type === "hero" ? undefined : ""}>
+            <SectionRenderer
+              section={section}
+              theme={t}
+              tpl={tpl}
+              businessName={businessName}
+              resolveHref={resolveHref}
+            />
+          </div>
         ))}
       </div>
 

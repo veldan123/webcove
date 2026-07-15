@@ -80,3 +80,16 @@ h3 {
     transition: none;
   }
 }
+
+/* ---- Generated-site scroll reveal (armed by SiteMotion) ---- */
+.wc-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wc-reveal.wc-in {
+  opacity: 1;
+  transform: none;
+}

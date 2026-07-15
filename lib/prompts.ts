@@ -68,7 +68,8 @@ Choosing a PALETTE:
 
 Rules:
 - The first page MUST have slug "home", order 0, and begin with a "hero" section.
-- Make it feel COMPLETE and rich like a real modern business site: the home page should have 6–8 sections. A strong order is: hero → stats → services (or menu) → about → testimonials → cta → contact.
+- Make it feel COMPLETE, long, and professional — like a real, polished business site, not a thin template. The home page should have 8–10 sections. A strong order is: hero → stats → services (or menu) → features (why us) → about → gallery → testimonials → cta → contact. Use a rich mix of section types; don't repeat the same layout back to back.
+- Other pages should also be full (3–5 sections each), never a bare hero + one block.
 - HERO: always give it a "badge", a "ctaText" + "ctaTarget", usually a "secondaryCtaText" + target, 2–3 "highlights", and an "imagePrompt" describing a great full-bleed photo (e.g. "steaming bowls of Vietnamese pho on a rustic table, overhead").
 - BUTTONS MUST GO SOMEWHERE REAL: set every ctaTarget / secondaryCtaTarget / buttonTarget to the slug of a page you are creating ("menu", "about", "contact", etc.) or "contact". Never point a "See our menu" button at contact — point it at the menu page. Make sure any page you reference actually exists in your pages array.
 - Add a "stats" section on the home page with 3–4 impressive, believable numbers.
