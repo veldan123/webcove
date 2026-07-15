@@ -19,7 +19,12 @@ export default async function DashboardLayout({
     <div className="flex min-h-full flex-col">
       <header className="border-b border-foreground/10">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/dashboard" className="font-semibold tracking-tight">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 font-semibold tracking-tight"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="" className="h-6 w-6" />
             Webcove
           </Link>
           <div className="flex items-center gap-4 text-sm">

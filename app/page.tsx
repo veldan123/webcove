@@ -58,7 +58,11 @@ export default function HomePage() {
 
       {/* Nav */}
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-        <span className="text-lg font-semibold tracking-tight">Webcove</span>
+        <span className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="" className="h-7 w-7" />
+          Webcove
+        </span>
         <nav className="flex items-center gap-3 text-sm">
           <Link
             href="/pricing"

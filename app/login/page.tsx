@@ -119,8 +119,10 @@ function LoginForm() {
     <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-6 py-16">
       <Link
         href="/"
-        className="mb-8 text-center text-lg font-semibold tracking-tight"
+        className="mb-8 flex items-center justify-center gap-2 text-lg font-semibold tracking-tight"
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="" className="h-7 w-7" />
         Webcove
       </Link>
 
