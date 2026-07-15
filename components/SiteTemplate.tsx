@@ -110,17 +110,19 @@ export function SiteTemplate({
   };
 
   // Resolve a button target ("menu", "contact", a page slug) to a real href.
-  const resolveHref = (target?: string): string | null => {
+  // Always returns a usable href so every button is clickable.
+  const resolveHref = (target?: string): string => {
     const raw = (target || "").toLowerCase().replace(/^\/+/, "").trim();
     // On-page anchors work everywhere, including the editor preview.
     if (raw === "contact" && hasContactSection) return "#contact";
     if (raw && raw !== "home" && page.sections.some((s) => s.type === raw)) {
       return `#${raw}`;
     }
-    if (basePath === undefined) return target ? "#" : null; // preview, cross-page
+    if (basePath === undefined) return "#"; // preview: cross-page nav isn't live
     if (raw && nav?.some((n) => n.slug === raw)) return linkFor(raw);
     if (nav?.some((n) => n.slug === "contact")) return linkFor("contact");
-    return hasContactSection ? "#contact" : null;
+    if (hasContactSection) return "#contact";
+    return "#";
   };
 
   return (
@@ -205,13 +207,19 @@ function Button({
   style,
 }: {
   label: string;
-  href: string | null;
+  href: string;
   tpl: Tpl;
   style: CSSProperties;
 }) {
-  const cls = `inline-block px-6 py-3 transition hover:opacity-90 ${tpl.buttonClass}`;
-  if (href) return <a href={href} className={cls} style={style}>{label}</a>;
-  return <span className={cls} style={style}>{label}</span>;
+  return (
+    <a
+      href={href}
+      className={`inline-block cursor-pointer px-6 py-3 transition hover:opacity-90 ${tpl.buttonClass}`}
+      style={style}
+    >
+      {label}
+    </a>
+  );
 }
 
 function SectionRenderer({
