@@ -37,3 +37,18 @@ export function galleryImageUrl(caption: string, seedKey: string): string {
     { width: 800, height: 600, seed: seedFrom(seedKey + caption) }
   );
 }
+
+export function heroImageUrl(prompt: string, seedKey: string): string {
+  return pollinationsUrl(
+    `${prompt}, cinematic, atmospheric, professional photography, high detail`,
+    { width: 1600, height: 900, seed: seedFrom(seedKey) }
+  );
+}
+
+export function cardImageUrl(prompt: string, seedKey: string): string {
+  return pollinationsUrl(`${prompt}, professional photograph, high quality`, {
+    width: 800,
+    height: 600,
+    seed: seedFrom(seedKey),
+  });
+}

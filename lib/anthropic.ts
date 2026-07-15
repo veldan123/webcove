@@ -12,7 +12,7 @@ import type {
   PageContent,
   SiteTheme,
 } from "./types";
-import { logoUrlFor } from "./images";
+import { logoUrlFor, heroImageUrl, cardImageUrl } from "./images";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
@@ -35,12 +35,32 @@ const sectionSchema = z.discriminatedUnion("type", [
     headline: z.string(),
     subheadline: z.string(),
     ctaText: z.string().optional(),
+    ctaTarget: z.string().optional(),
+    secondaryCtaText: z.string().optional(),
+    secondaryCtaTarget: z.string().optional(),
+    badge: z.string().optional(),
+    highlights: z.array(z.string()).optional(),
+    imageUrl: z.string().url().optional(),
+    imagePrompt: z.string().optional(),
   }),
   z.object({ type: z.literal("about"), heading: z.string(), body: z.string() }),
   z.object({
     type: z.literal("services"),
     heading: z.string(),
-    items: z.array(z.object({ title: z.string(), description: z.string() })),
+    items: z.array(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        price: z.string().optional(),
+        badge: z.string().optional(),
+        imageUrl: z.string().url().optional(),
+        imagePrompt: z.string().optional(),
+      })
+    ),
+  }),
+  z.object({
+    type: z.literal("stats"),
+    items: z.array(z.object({ value: z.string(), label: z.string() })),
   }),
   z.object({
     type: z.literal("features"),
@@ -64,6 +84,7 @@ const sectionSchema = z.discriminatedUnion("type", [
     heading: z.string(),
     body: z.string(),
     buttonText: z.string(),
+    buttonTarget: z.string().optional(),
   }),
   z.object({
     type: z.literal("contact"),
@@ -183,6 +204,30 @@ export async function generateSite(input: {
       result.data.theme.logoUrl ||
       logoUrlFor(input.businessName, input.businessType),
   };
+
+  // Fill in hero backgrounds + service card images from Pollinations so sites
+  // look real out of the box (the model supplies prompts; we build the URLs).
+  for (const page of pages) {
+    for (const section of page.content.sections) {
+      if (section.type === "hero" && !section.imageUrl) {
+        section.imageUrl = heroImageUrl(
+          section.imagePrompt ||
+            `${input.businessType}, ${input.businessName}, hero background`,
+          input.businessName + "hero" + page.slug
+        );
+      }
+      if (section.type === "services") {
+        for (const item of section.items) {
+          if (!item.imageUrl) {
+            item.imageUrl = cardImageUrl(
+              item.imagePrompt || `${item.title}, ${input.businessType}`,
+              input.businessName + item.title
+            );
+          }
+        }
+      }
+    }
+  }
 
   return { theme, pages };
 }

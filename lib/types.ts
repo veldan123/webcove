@@ -9,6 +9,7 @@ export type SectionType =
   | "about"
   | "services"
   | "features"
+  | "stats"
   | "testimonials"
   | "gallery"
   | "cta"
@@ -19,6 +20,18 @@ export interface HeroSection {
   headline: string;
   subheadline: string;
   ctaText?: string;
+  ctaTarget?: string; // a page slug ("menu") or "contact"
+  secondaryCtaText?: string;
+  secondaryCtaTarget?: string;
+  badge?: string; // small pill above the headline
+  highlights?: string[]; // info chips, e.g. "Open daily 11–9"
+  imageUrl?: string; // full-bleed background image
+  imagePrompt?: string; // used to generate a background image
+}
+
+export interface StatsSection {
+  type: "stats";
+  items: { value: string; label: string }[];
 }
 
 export interface AboutSection {
@@ -30,7 +43,14 @@ export interface AboutSection {
 export interface ServicesSection {
   type: "services";
   heading: string;
-  items: { title: string; description: string }[];
+  items: {
+    title: string;
+    description: string;
+    price?: string; // e.g. "$12.95"
+    badge?: string; // e.g. "Most Popular"
+    imageUrl?: string;
+    imagePrompt?: string;
+  }[];
 }
 
 export interface FeaturesSection {
@@ -56,6 +76,7 @@ export interface CtaSection {
   heading: string;
   body: string;
   buttonText: string;
+  buttonTarget?: string; // page slug or "contact"
 }
 
 export interface ContactSection {
@@ -72,6 +93,7 @@ export type Section =
   | AboutSection
   | ServicesSection
   | FeaturesSection
+  | StatsSection
   | TestimonialsSection
   | GallerySection
   | CtaSection

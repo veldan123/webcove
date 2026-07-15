@@ -5,13 +5,22 @@
 // The section vocabulary the model is allowed to emit. Mirrors lib/types.ts.
 const SECTION_SPEC = `
 Allowed section objects (the "type" field selects the shape):
-- { "type": "hero", "headline": string, "subheadline": string, "ctaText"?: string }
+- { "type": "hero", "headline": string, "subheadline": string,
+    "ctaText"?: string, "ctaTarget"?: string,           // ctaTarget = the slug of a page to link to ("menu") or "contact"
+    "secondaryCtaText"?: string, "secondaryCtaTarget"?: string,
+    "badge"?: string,                                    // small pill above headline, e.g. "Authentic since 2010"
+    "highlights"?: string[],                             // 2-3 quick facts, e.g. ["Open daily 11-9", "Free parking", "4.8 on Google"]
+    "imagePrompt"?: string }                             // short vivid description for a full-bleed background photo
 - { "type": "about", "heading": string, "body": string }
-- { "type": "services", "heading": string, "items": [{ "title": string, "description": string }] }
+- { "type": "services", "heading": string, "items": [{ "title": string, "description": string,
+    "price"?: string,                                    // e.g. "$12.95" (great for menus/pricing)
+    "badge"?: string,                                    // e.g. "Most Popular"
+    "imagePrompt"?: string }] }                          // short description for a photo of this item
 - { "type": "features", "heading": string, "items": [{ "title": string, "description": string }] }
+- { "type": "stats", "items": [{ "value": string, "label": string }] }   // e.g. { "value": "500+", "label": "Events catered" }
 - { "type": "testimonials", "heading": string, "items": [{ "quote": string, "author": string }] }
 - { "type": "gallery", "heading": string, "items": [{ "caption": string }] }
-- { "type": "cta", "heading": string, "body": string, "buttonText": string }
+- { "type": "cta", "heading": string, "body": string, "buttonText": string, "buttonTarget"?: string }
 - { "type": "contact", "heading": string, "body"?: string, "phone"?: string, "email"?: string, "address"?: string }
 `.trim();
 
@@ -59,10 +68,14 @@ Choosing a PALETTE:
 
 Rules:
 - The first page MUST have slug "home", order 0, and begin with a "hero" section.
-- Make it feel COMPLETE and rich: the home page should have 5–7 sections (e.g. hero, about, services/features, testimonials, gallery or cta, contact) — not just two. Other pages 2–4 sections each.
-- Write specific, benefit-driven copy grounded in the business details. Never use lorem ipsum. Give services/features 3–6 items with real descriptions.
+- Make it feel COMPLETE and rich like a real modern business site: the home page should have 6–8 sections. A strong order is: hero → stats → services (or menu) → about → testimonials → cta → contact.
+- HERO: always give it a "badge", a "ctaText" + "ctaTarget", usually a "secondaryCtaText" + target, 2–3 "highlights", and an "imagePrompt" describing a great full-bleed photo (e.g. "steaming bowls of Vietnamese pho on a rustic table, overhead").
+- BUTTONS MUST GO SOMEWHERE REAL: set every ctaTarget / secondaryCtaTarget / buttonTarget to the slug of a page you are creating ("menu", "about", "contact", etc.) or "contact". Never point a "See our menu" button at contact — point it at the menu page. Make sure any page you reference actually exists in your pages array.
+- Add a "stats" section on the home page with 3–4 impressive, believable numbers.
+- For a business that shows products/menu/services, give services items a "price" (when it makes sense), a "badge" on 1–2 standouts, and an "imagePrompt" for each item so it gets a real photo.
+- Write specific, benefit-driven copy grounded in the business details. Never use lorem ipsum.
 - Include a "contact" section using the details provided; omit fields the customer didn't give.
-- Produce AT MOST {{MAX_PAGES}} pages. Fewer is fine if the business is simple, but make each page substantial.
+- Produce AT MOST {{MAX_PAGES}} pages. Make each page substantial.
 - Output valid JSON only.
 `.trim();
 
