@@ -230,9 +230,15 @@ function SectionRenderer({
 
   switch (section.type) {
     case "hero": {
+      // Fallback for sites generated before hero images existed: use the
+      // subheadline (which describes the business) — never the headline alone,
+      // which can be a made-up brand word and produce a nonsense image.
       const bg =
         section.imageUrl ||
-        heroImageUrl(`${section.headline} ${businessName}`, businessName + "hero");
+        heroImageUrl(
+          section.subheadline || `${businessName} storefront`,
+          businessName + "hero"
+        );
       const primaryStyle = tpl.buttonStyle(theme);
       const secondaryStyle: CSSProperties = {
         backgroundColor: "transparent",
