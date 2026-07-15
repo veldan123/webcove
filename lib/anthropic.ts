@@ -18,6 +18,7 @@ import {
   cardImageUrl,
   galleryImageUrl,
 } from "./images";
+import { isPexelsConfigured, searchPexels } from "./pexels";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
@@ -210,23 +211,45 @@ export async function generateSite(input: {
       logoUrlFor(input.businessName, input.businessType),
   };
 
-  // Fill in hero backgrounds + service card images from Pollinations so sites
-  // look real out of the box (the model supplies prompts; we build the URLs).
+  // Fill hero/service/gallery images. Prefer real Pexels stock photos (fast,
+  // reliable, professional); fall back to Pollinations when Pexels isn't
+  // configured or returns nothing.
+  const usedPhotoIds = new Set<number>();
+  const pick = async (
+    query: string,
+    fallback: () => string
+  ): Promise<string> => {
+    if (isPexelsConfigured()) {
+      const p = await searchPexels(query, {
+        orientation: "landscape",
+        exclude: usedPhotoIds,
+      });
+      if (p) {
+        usedPhotoIds.add(p.id);
+        return p.url;
+      }
+    }
+    return fallback();
+  };
+
   for (const page of pages) {
     for (const section of page.content.sections) {
       if (section.type === "hero" && !section.imageUrl) {
-        section.imageUrl = heroImageUrl(
-          section.imagePrompt ||
-            `${input.businessType}, ${input.businessName}, hero background`,
-          input.businessName + "hero" + page.slug
+        section.imageUrl = await pick(
+          section.imagePrompt || input.businessType,
+          () =>
+            heroImageUrl(
+              section.subheadline || input.businessType,
+              input.businessName + "hero" + page.slug
+            )
         );
       }
       if (section.type === "services") {
         for (const item of section.items) {
           if (!item.imageUrl) {
-            item.imageUrl = cardImageUrl(
-              item.imagePrompt || `${item.title}, ${input.businessType}`,
-              input.businessName + item.title
+            item.imageUrl = await pick(
+              item.imagePrompt || `${item.title} ${input.businessType}`,
+              () => cardImageUrl(item.title, input.businessName + item.title)
             );
           }
         }
@@ -234,9 +257,10 @@ export async function generateSite(input: {
       if (section.type === "gallery") {
         for (const item of section.items) {
           if (!item.imageUrl) {
-            item.imageUrl = galleryImageUrl(
-              item.caption,
-              input.businessName + item.caption
+            item.imageUrl = await pick(
+              `${item.caption} ${input.businessType}`,
+              () =>
+                galleryImageUrl(item.caption, input.businessName + item.caption)
             );
           }
         }
