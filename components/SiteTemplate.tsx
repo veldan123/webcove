@@ -233,7 +233,7 @@ function SectionRenderer({
   theme: SiteTheme;
   tpl: Tpl;
   businessName: string;
-  resolveHref: (target?: string) => string | null;
+  resolveHref: (target?: string) => string;
 }) {
   const pad = tpl.sectionPad;
 
