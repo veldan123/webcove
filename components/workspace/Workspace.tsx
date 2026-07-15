@@ -43,9 +43,17 @@ export function Workspace({
   const [published, setPublished] = useState(initialPublished);
   const [showDomain, setShowDomain] = useState(false);
   const [themeState, setThemeState] = useState<SiteTheme | null>(theme);
+  const [flash, setFlash] = useState(false);
+
+  // Briefly highlight the preview so a live edit is obvious.
+  function bump() {
+    setFlash(true);
+    window.setTimeout(() => setFlash(false), 900);
+  }
 
   function applyThemePatch(patch: Partial<SiteTheme>) {
     setThemeState((prev) => ({ ...(prev ?? {}), ...patch }) as SiteTheme);
+    bump();
   }
 
   const selectedPage = useMemo(
@@ -60,6 +68,7 @@ export function Workspace({
     setPages((prev) =>
       prev.map((p) => (p.id === pageId ? { ...p, content } : p))
     );
+    bump();
   }
 
   return (
@@ -149,7 +158,13 @@ export function Workspace({
 
         {/* Live preview */}
         <div className="min-w-0 flex-1 overflow-y-auto bg-foreground/[0.03] p-4">
-          <div className="mx-auto max-w-4xl overflow-hidden rounded-xl border border-foreground/10 bg-white shadow-sm">
+          <div
+            className={`mx-auto max-w-4xl overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 ${
+              flash
+                ? "border-primary/60 ring-4 ring-primary/25"
+                : "border-foreground/10 ring-0"
+            }`}
+          >
             {selectedPage ? (
               <SiteTemplate
                 theme={themeState}

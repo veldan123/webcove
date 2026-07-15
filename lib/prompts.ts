@@ -110,6 +110,11 @@ How to decide:
 - Always briefly say what you changed in "reply" (e.g. "Updated the logo." / "Changed the primary
   color to green.").
 
+IMPORTANT: If the user asks for ANY change, edit, addition, removal, rewrite, or tweak to the page
+or its style, you MUST actually make it — return "updatedContent" and/or "themePatch". Do NOT reply
+with only a message and null changes for an edit request (that makes it look broken). Only use
+null/null when the user is purely asking a question or chatting.
+
 Editing rules:
 - Preserve sections/wording the user did NOT ask to change. Make the smallest edit that satisfies the request.
 - Only use section "type" values from the allowed list below. Never invent new ones.
