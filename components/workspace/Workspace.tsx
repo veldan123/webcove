@@ -42,6 +42,7 @@ export function Workspace({
   );
   const [published, setPublished] = useState(initialPublished);
   const [showDomain, setShowDomain] = useState(false);
+  const [showChatMobile, setShowChatMobile] = useState(false);
   const [themeState, setThemeState] = useState<SiteTheme | null>(theme);
   const [flash, setFlash] = useState(false);
 
@@ -128,6 +129,27 @@ export function Workspace({
         </div>
       </div>
 
+      {/* Mobile controls: page switcher + open AI assistant */}
+      <div className="flex items-center gap-2 border-b border-foreground/10 px-4 py-2 lg:hidden">
+        <select
+          value={selectedPage?.id ?? ""}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="min-w-0 flex-1 rounded-lg border border-foreground/15 bg-transparent px-3 py-2 text-sm outline-none"
+        >
+          {pages.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.title}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => setShowChatMobile(true)}
+          className="shrink-0 rounded-lg border border-foreground/15 px-3 py-2 text-sm hover:bg-foreground/5"
+        >
+          💬 AI
+        </button>
+      </div>
+
       {/* Body: page list | preview | chat */}
       <div className="flex min-h-0 flex-1">
         {/* Page list */}
@@ -198,6 +220,29 @@ export function Workspace({
           initialVerified={customDomainVerified}
           onClose={() => setShowDomain(false)}
         />
+      )}
+
+      {/* Mobile AI assistant (full-screen sheet) */}
+      {showChatMobile && (
+        <div className="fixed inset-0 z-40 flex flex-col bg-background lg:hidden">
+          <div className="flex items-center justify-between border-b border-foreground/10 px-4 py-3">
+            <span className="text-sm font-medium">AI assistant</span>
+            <button
+              onClick={() => setShowChatMobile(false)}
+              className="rounded-md border border-foreground/15 px-3 py-1.5 text-sm hover:bg-foreground/5"
+            >
+              Close
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            <ChatSidebar
+              siteId={siteId}
+              page={selectedPage}
+              onPatched={applyPageContent}
+              onThemePatch={applyThemePatch}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { getUserAndProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { usageSummary } from "@/lib/usage";
+import { ProjectCard } from "@/components/ProjectCard";
+import { CheckoutThankYou } from "@/components/CheckoutThankYou";
 import type { SiteRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +32,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
+      <Suspense fallback={null}>
+        <CheckoutThankYou />
+      </Suspense>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -71,35 +77,7 @@ export default async function DashboardPage() {
       ) : (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((site) => (
-            <Link
-              key={site.id}
-              href={`/dashboard/${site.id}`}
-              className="group flex flex-col rounded-xl border border-foreground/10 p-5 transition hover:border-foreground/30"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold group-hover:underline">
-                  {site.business_name}
-                </h3>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
-                    site.published
-                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                      : "bg-foreground/10 text-foreground/60"
-                  }`}
-                >
-                  {site.published ? "Published" : "Draft"}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-foreground/60">
-                {site.business_type}
-              </p>
-              <p className="mt-3 line-clamp-2 text-sm text-foreground/50">
-                {site.business_description}
-              </p>
-              <span className="mt-4 text-xs text-foreground/40">
-                /{site.slug}
-              </span>
-            </Link>
+            <ProjectCard key={site.id} site={site} />
           ))}
         </div>
       )}

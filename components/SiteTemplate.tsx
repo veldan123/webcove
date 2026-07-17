@@ -8,6 +8,7 @@ import type { CSSProperties } from "react";
 import { galleryImageUrl, cardImageUrl, heroImageUrl } from "@/lib/images";
 import { SiteImage } from "@/components/SiteImage";
 import { SiteMotion } from "@/components/SiteMotion";
+import { SiteNav } from "@/components/SiteNav";
 
 const DEFAULT_THEME: SiteTheme = {
   primaryColor: "#2563eb",
@@ -135,35 +136,18 @@ export function SiteTemplate({
       }}
     >
       {nav && nav.length > 0 && (
-        <nav
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: `1px solid ${t.textColor}1a` }}
-        >
-          <span className="flex items-center gap-2.5">
-            {t.logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={t.logoUrl}
-                alt=""
-                className="h-9 w-9 rounded-md object-contain"
-              />
-            )}
-            <span className={tpl.eyebrow ? "text-lg font-semibold" : "text-lg font-bold"}>
-              {businessName}
-            </span>
-          </span>
-          <div className="hidden flex-wrap gap-5 text-sm sm:flex">
-            {nav.map((item) => (
-              <a
-                key={item.slug}
-                href={linkFor(item.slug)}
-                className="opacity-70 transition-opacity hover:opacity-100"
-              >
-                {item.title}
-              </a>
-            ))}
-          </div>
-        </nav>
+        <SiteNav
+          businessName={businessName}
+          logoUrl={t.logoUrl}
+          links={nav.map((item) => ({
+            title: item.title,
+            slug: item.slug,
+            href: linkFor(item.slug),
+          }))}
+          textColor={t.textColor}
+          backgroundColor={t.backgroundColor}
+          bold={!tpl.eyebrow}
+        />
       )}
 
       <SiteMotion />
