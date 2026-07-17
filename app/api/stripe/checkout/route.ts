@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
 import { getStripe, priceIdForPlan, ensureStripeCustomer } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
   plan: z.enum(["basic", "pro", "agency"]),
@@ -27,6 +28,40 @@ export async function POST(request: Request) {
     const stripe = getStripe();
     // Always resolve to a valid live customer (recreates a stale/test-mode one).
     const customerId = await ensureStripeCustomer(session.profile, session.email);
+
+    // Already subscribed? SWITCH the existing subscription to the new plan
+    // instead of creating a second one (which would double-charge). Stripe
+    // prorates the difference. The webhook + this direct patch sync the plan.
+    const subId = session.profile.stripe_subscription_id;
+    if (subId) {
+      try {
+        const sub = await stripe.subscriptions.retrieve(subId);
+        const switchable = ["active", "trialing", "past_due"].includes(
+          sub.status
+        );
+        const item = sub.items.data[0];
+        if (switchable && item && !sub.cancel_at_period_end) {
+          const newPrice = priceIdForPlan(plan);
+          if (item.price.id !== newPrice) {
+            await stripe.subscriptions.update(subId, {
+              items: [{ id: item.id, price: newPrice }],
+              proration_behavior: "create_prorations",
+              metadata: { userId: session.userId, plan },
+            });
+            const admin = createAdminClient();
+            await admin
+              .from("profiles")
+              .update({ plan, subscription_status: "active" })
+              .eq("id", session.userId);
+          }
+          return NextResponse.json({ switched: true });
+        }
+      } catch (e) {
+        // Stale/invalid subscription id (e.g. left over from test mode) — fall
+        // through to a fresh Checkout session below.
+        console.warn("Subscription switch fell back to new checkout:", e);
+      }
+    }
 
     const checkout = await stripe.checkout.sessions.create({
       mode: "subscription",

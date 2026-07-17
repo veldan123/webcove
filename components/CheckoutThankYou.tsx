@@ -10,7 +10,9 @@ export function CheckoutThankYou() {
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
 
-  if (params.get("checkout") !== "success" || dismissed) return null;
+  const switched = params.get("switched") === "1";
+  const show = params.get("checkout") === "success" || switched;
+  if (!show || dismissed) return null;
 
   function close() {
     setDismissed(true);
@@ -24,11 +26,12 @@ export function CheckoutThankYou() {
           ✓
         </div>
         <h2 className="mt-5 text-xl font-semibold tracking-tight">
-          Thank you for subscribing! 🎉
+          {switched ? "Plan switched! 🎉" : "Thank you for subscribing! 🎉"}
         </h2>
         <p className="mt-2 text-sm text-foreground/60">
-          Your plan is now active. You can publish your sites live and unlock the
-          rest of Webcove whenever you&apos;re ready.
+          {switched
+            ? "You're now on your new plan. Stripe prorated the difference — no double charge, and your old plan was replaced."
+            : "Your plan is now active. You can publish your sites live and unlock the rest of Webcove whenever you're ready."}
         </p>
         <button
           onClick={close}

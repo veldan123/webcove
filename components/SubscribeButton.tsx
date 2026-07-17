@@ -33,6 +33,11 @@ export function SubscribeButton({
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
+      // Switched an existing subscription in place — no Checkout needed.
+      if (data.switched) {
+        window.location.href = "/dashboard?switched=1";
+        return;
+      }
       if (!res.ok || !data.url) {
         setError(data.error || "Could not start checkout.");
         setLoading(false);
