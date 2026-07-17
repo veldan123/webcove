@@ -34,9 +34,9 @@ export const PLAN_LIMITS: Record<Exclude<Plan, "none">, PlanLimit> = {
   agency: {
     maxPagesPerSite: 6,
     maxPublishedSites: null,
-    monthlyPublishQuota: 10,
+    monthlyPublishQuota: 10, // 10 sample publishes / month, counted even if rejected
     emailTool: true,
-    priceUsd: 80,
+    priceUsd: 35,
   },
 };
 

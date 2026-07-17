@@ -165,6 +165,8 @@ export interface SiteRow {
   generated_content: { theme: SiteTheme } | null;
   published: boolean;
   published_at: string | null;
+  publish_expires_at: string | null; // Agency 48h sample expiry; null = permanent
+  kept: boolean; // paid one-time to keep an approved sample live permanently
   custom_domain: string | null;
   custom_domain_verified: boolean;
   created_at: string;

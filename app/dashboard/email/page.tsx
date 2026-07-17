@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserAndProfile } from "@/lib/auth";
 import { getPlanLimits } from "@/lib/plans";
-import { EmailTool } from "@/components/EmailTool";
+import { createClient } from "@/lib/supabase/server";
+import { EmailTool, type EmailToolSite } from "@/components/EmailTool";
+import type { SiteRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,23 @@ export default async function EmailToolPage() {
     );
   }
 
+  // The agency's projects, so they can pick which sample site they're selling
+  // and include its link in the email.
+  const supabase = await createClient();
+  const { data: sites } = await supabase
+    .from("sites")
+    .select("*")
+    .eq("owner_id", session.userId)
+    .order("created_at", { ascending: false })
+    .returns<SiteRow[]>();
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const projects: EmailToolSite[] = (sites ?? []).map((s) => ({
+    id: s.id,
+    name: s.business_name,
+    url: `${base}/${s.slug}`,
+  }));
+
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
       <Link
@@ -47,10 +66,10 @@ export default async function EmailToolPage() {
         Cold-email outreach
       </h1>
       <p className="mt-2 text-sm text-foreground/60">
-        Enter a prospect&apos;s details, let AI draft the email, review it, then
-        send.
+        Pick the sample site you&apos;re selling, enter the prospect&apos;s
+        details, let AI draft the email with your preview link, review, then send.
       </p>
-      <EmailTool />
+      <EmailTool projects={projects} />
     </div>
   );
 }

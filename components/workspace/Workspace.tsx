@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteTemplate } from "@/components/SiteTemplate";
 import { ChatSidebar } from "@/components/workspace/ChatSidebar";
 import { PublishControls } from "@/components/workspace/PublishControls";
+import { KeptThankYou } from "@/components/workspace/KeptThankYou";
 import { CustomDomainPanel } from "@/components/workspace/CustomDomainPanel";
 import type { PageContent, PageRow, SiteTheme } from "@/lib/types";
 import type { Plan, SubscriptionStatus } from "@/lib/plans";
@@ -14,6 +15,9 @@ export function Workspace({
   slug,
   businessName,
   published: initialPublished,
+  kept,
+  publishedAt,
+  publishExpiresAt,
   theme,
   initialPages,
   plan,
@@ -27,6 +31,9 @@ export function Workspace({
   slug: string;
   businessName: string;
   published: boolean;
+  kept: boolean;
+  publishedAt: string | null;
+  publishExpiresAt: string | null;
   theme: SiteTheme | null;
   initialPages: PageRow[];
   plan: Plan;
@@ -65,6 +72,22 @@ export function Workspace({
   const nav = pages.map((p) => ({ title: p.title, slug: p.slug }));
   const publicUrl = `${process.env.NEXT_PUBLIC_BASE_URL || ""}/${slug}`;
 
+  // Effective "live to the public" state (an expired 48h sample isn't live).
+  const sampleExpired =
+    !kept &&
+    !!publishExpiresAt &&
+    new Date(publishExpiresAt).getTime() <= Date.now();
+  const live = published && !sampleExpired;
+  const statusLabel = kept
+    ? "Live"
+    : plan === "agency" && published && !sampleExpired
+      ? "Sample live"
+      : live
+        ? "Published"
+        : sampleExpired
+          ? "Sample ended"
+          : "Draft";
+
   function applyPageContent(pageId: string, content: PageContent) {
     setPages((prev) =>
       prev.map((p) => (p.id === pageId ? { ...p, content } : p))
@@ -74,6 +97,9 @@ export function Workspace({
 
   return (
     <div className="flex h-[calc(100vh-0px)] flex-col">
+      <Suspense fallback={null}>
+        <KeptThankYou siteId={siteId} />
+      </Suspense>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground/10 px-4 py-3">
         <div className="flex items-center gap-3">
@@ -86,12 +112,14 @@ export function Workspace({
           <span className="font-semibold">{businessName}</span>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
-              published
+              kept || live
                 ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                : "bg-foreground/10 text-foreground/60"
+                : sampleExpired
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                  : "bg-foreground/10 text-foreground/60"
             }`}
           >
-            {published ? "Published" : "Draft"}
+            {statusLabel}
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -108,7 +136,7 @@ export function Workspace({
               <span className="ml-1 text-green-500">●</span>
             )}
           </button>
-          {published && (
+          {live && (
             <a
               href={publicUrl}
               target="_blank"
@@ -122,6 +150,9 @@ export function Workspace({
             siteId={siteId}
             published={published}
             plan={plan}
+            kept={kept}
+            publishedAt={publishedAt}
+            publishExpiresAt={publishExpiresAt}
             subscriptionStatus={subscriptionStatus}
             usageAtLimit={usageAtLimit}
             onChange={setPublished}

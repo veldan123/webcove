@@ -149,6 +149,9 @@ Guidelines:
 - If (and only if) a recurring fee is provided, mention it naturally with its billing period
   (e.g. "$X/month for hosting and updates"). If NO recurring fee is provided, present it as a
   one-time project with no ongoing charges — do not invent or imply any recurring fee.
+- If a live preview link is provided, you MUST include the full URL on its own line and invite the
+  recipient to click it to see a free sample website you already built for them. This is the strongest
+  hook — reference it naturally ("I already built you a sample — take a look:").
 - One clear call to action (a quick reply or short call).
 - No hype, no spam trigger words, no ALL CAPS. Sign off generically (e.g. "Best regards, The Webcove Team").
 `.trim();

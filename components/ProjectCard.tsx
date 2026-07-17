@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { isSiteLive } from "@/lib/site-status";
 import type { SiteRow } from "@/lib/types";
 
 // Dashboard project card that shows a "Loading…" overlay when tapped, since
@@ -9,6 +10,23 @@ import type { SiteRow } from "@/lib/types";
 export function ProjectCard({ site }: { site: SiteRow }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  const isSample = !site.kept && !!site.publish_expires_at;
+  const badge = site.kept
+    ? { text: "Live", tone: "green" }
+    : isSample
+      ? isSiteLive(site)
+        ? { text: "Sample live", tone: "amber" }
+        : { text: "Sample ended", tone: "amber" }
+      : site.published
+        ? { text: "Published", tone: "green" }
+        : { text: "Draft", tone: "muted" };
+  const badgeClass =
+    badge.tone === "green"
+      ? "bg-green-500/15 text-green-600 dark:text-green-400"
+      : badge.tone === "amber"
+        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+        : "bg-foreground/10 text-foreground/60";
 
   return (
     <button
@@ -23,13 +41,9 @@ export function ProjectCard({ site }: { site: SiteRow }) {
           {site.business_name}
         </h3>
         <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
-            site.published
-              ? "bg-green-500/15 text-green-600 dark:text-green-400"
-              : "bg-foreground/10 text-foreground/60"
-          }`}
+          className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${badgeClass}`}
         >
-          {site.published ? "Published" : "Draft"}
+          {badge.text}
         </span>
       </div>
       <p className="mt-1 text-sm text-foreground/60">{site.business_type}</p>

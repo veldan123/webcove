@@ -65,6 +65,20 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
+
+        // One-time "keep this approved sample live permanently" payment.
+        if (s.mode === "payment" || s.metadata?.kind === "keep_site") {
+          const keepSiteId = s.metadata?.siteId as string | undefined;
+          if (keepSiteId) {
+            const { error } = await admin
+              .from("sites")
+              .update({ kept: true, published: true, publish_expires_at: null })
+              .eq("id", keepSiteId);
+            if (error) console.error("keep_site update failed:", error);
+          }
+          break;
+        }
+
         const userId =
           s.client_reference_id || (s.metadata?.userId as string | undefined);
         const customerId = s.customer as string;

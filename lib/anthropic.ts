@@ -358,6 +358,7 @@ export async function draftColdEmail(input: {
   recurringFee?: number | null;
   recurringPeriod?: "month" | "year";
   senderContext?: string;
+  siteUrl?: string; // link to the sample site being pitched
 }): Promise<string> {
   const hasRecurring = !!input.recurringFee && input.recurringFee > 0;
   const userMessage = [
@@ -366,6 +367,9 @@ export async function draftColdEmail(input: {
     hasRecurring
       ? `Recurring hosting fee: $${input.recurringFee} per ${input.recurringPeriod ?? "month"}`
       : `Recurring fee: NONE — this is a one-time project with no ongoing charges.`,
+    input.siteUrl
+      ? `Live preview link (MUST be included in the email, on its own line): ${input.siteUrl}`
+      : "",
     input.senderContext ? `Extra context: ${input.senderContext}` : "",
     ``,
     `Write the email body now.`,

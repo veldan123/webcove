@@ -3,6 +3,7 @@ import { getUserAndProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PLAN_LIMITS } from "@/lib/plans";
+import { isSiteLive, SAMPLE_MS } from "@/lib/site-status";
 import type { SiteRow } from "@/lib/types";
 
 /**
@@ -38,8 +39,10 @@ export async function POST(
     return NextResponse.json({ error: "Site not found" }, { status: 404 });
   }
 
-  // Already live — idempotent success, doesn't consume quota again.
-  if (site.published) {
+  // Already live — idempotent success, doesn't consume quota again. An Agency
+  // sample whose 48h window has elapsed is NOT live, so it can be re-published
+  // (which counts as a new sample publish).
+  if (isSiteLive(site)) {
     return NextResponse.json({ published: true });
   }
 
@@ -115,9 +118,19 @@ export async function POST(
   }
 
   // 5. All checks passed — publish.
+  // Agency publishes are 48-hour SAMPLES that come down automatically (unless
+  // already kept). Basic/Pro publish permanently (no expiry).
+  const now = Date.now();
+  const isAgencySample = profile.plan === "agency" && !site.kept;
   const { error: publishError } = await admin
     .from("sites")
-    .update({ published: true, published_at: new Date().toISOString() })
+    .update({
+      published: true,
+      published_at: new Date(now).toISOString(),
+      publish_expires_at: isAgencySample
+        ? new Date(now + SAMPLE_MS).toISOString()
+        : null,
+    })
     .eq("id", siteId);
 
   if (publishError) {
@@ -138,5 +151,11 @@ export async function POST(
   }
 
   const publicUrl = `${process.env.NEXT_PUBLIC_BASE_URL || ""}/${site.slug}`;
-  return NextResponse.json({ published: true, url: publicUrl });
+  return NextResponse.json({
+    published: true,
+    url: publicUrl,
+    publishExpiresAt: isAgencySample
+      ? new Date(now + SAMPLE_MS).toISOString()
+      : null,
+  });
 }

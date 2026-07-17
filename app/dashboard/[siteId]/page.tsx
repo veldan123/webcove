@@ -53,6 +53,9 @@ export default async function WorkspacePage({
       slug={site.slug}
       businessName={site.business_name}
       published={site.published}
+      kept={site.kept}
+      publishedAt={site.published_at}
+      publishExpiresAt={site.publish_expires_at}
       theme={theme}
       initialPages={pages ?? []}
       plan={session.profile.plan}

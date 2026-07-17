@@ -1,4 +1,5 @@
 import { createPublicClient } from "./supabase/public";
+import { isSiteLive } from "./site-status";
 import type { PageRow, SiteRow, SiteTheme } from "./types";
 
 export interface PublishedSite {
@@ -23,7 +24,9 @@ export async function getPublishedSite(
     .eq("published", true)
     .maybeSingle<SiteRow>();
 
-  if (!site) return null;
+  // An expired Agency sample keeps published = true in the DB but is no longer
+  // live — treat it as not found.
+  if (!site || !isSiteLive(site)) return null;
 
   const { data: pages } = await supabase
     .from("pages")
@@ -53,7 +56,7 @@ export async function getPublishedSiteByDomain(
     .eq("custom_domain_verified", true)
     .eq("published", true)
     .maybeSingle<SiteRow>();
-  if (!site) return null;
+  if (!site || !isSiteLive(site)) return null;
 
   const { data: pages } = await supabase
     .from("pages")

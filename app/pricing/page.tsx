@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getUserAndProfile } from "@/lib/auth";
 import { PLAN_LIMITS, type Plan } from "@/lib/plans";
+import { KEEP_SITE_PRICE_USD } from "@/lib/site-status";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 
@@ -35,12 +36,13 @@ const PLANS: {
   {
     key: "agency",
     name: "Agency",
-    blurb: "Build sites for many clients.",
+    blurb: "Build & sell sites to local businesses.",
     features: [
       `${PLAN_LIMITS.agency.maxPagesPerSite} pages per site`,
-      `${PLAN_LIMITS.agency.monthlyPublishQuota} publishes per month`,
-      "Unlimited published sites",
-      "Cold-email outreach tool",
+      `${PLAN_LIMITS.agency.monthlyPublishQuota} sample publishes / month`,
+      "48-hour client-approval samples",
+      `Keep an approved site for $${KEEP_SITE_PRICE_USD} one-time`,
+      "Cold-email tool with preview links",
     ],
   },
 ];

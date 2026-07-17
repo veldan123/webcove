@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export function EmailTool() {
+export interface EmailToolSite {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export function EmailTool({ projects = [] }: { projects?: EmailToolSite[] }) {
   const [form, setForm] = useState({
     recipientBusinessName: "",
     priceQuoted: "",
@@ -10,6 +16,7 @@ export function EmailTool() {
     recurringFee: "",
     recurringPeriod: "month" as "month" | "year",
     subject: "",
+    siteId: "" as string,
   });
   const [body, setBody] = useState("");
   const [drafting, setDrafting] = useState(false);
@@ -24,6 +31,7 @@ export function EmailTool() {
     setError(null);
     setCopied("");
     setDrafting(true);
+    const selected = projects.find((p) => p.id === form.siteId);
     try {
       const res = await fetch("/api/email/draft", {
         method: "POST",
@@ -36,6 +44,7 @@ export function EmailTool() {
               ? Number(form.recurringFee)
               : null,
           recurringPeriod: form.recurringPeriod,
+          siteUrl: selected?.url,
         }),
       });
       const data = await res.json();
@@ -76,6 +85,33 @@ export function EmailTool() {
   return (
     <div className="mt-8 space-y-6">
       <form onSubmit={generateDraft} className="space-y-4">
+        {projects.length > 0 && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">
+              Which site are you selling?
+            </label>
+            <select
+              className={field}
+              value={form.siteId}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, siteId: e.target.value }))
+              }
+            >
+              <option value="">No preview link</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            {form.siteId && (
+              <p className="mt-1.5 text-xs text-foreground/50">
+                {projects.find((p) => p.id === form.siteId)?.url} will be
+                included in the email so the prospect can view their sample.
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <label className="mb-1.5 block text-sm font-medium">
             Recipient business name

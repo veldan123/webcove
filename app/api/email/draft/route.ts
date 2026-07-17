@@ -11,6 +11,7 @@ const bodySchema = z.object({
   priceQuoted: z.number().nonnegative(),
   recurringFee: z.number().nonnegative().nullable().optional(),
   recurringPeriod: z.enum(["month", "year"]).optional(),
+  siteUrl: z.string().url().max(500).optional(),
 });
 
 export async function POST(request: Request) {
