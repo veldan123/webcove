@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
-import { getStripe, priceIdForPlan } from "@/lib/stripe";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getStripe, priceIdForPlan, ensureStripeCustomer } from "@/lib/stripe";
 
 const bodySchema = z.object({
   plan: z.enum(["basic", "pro", "agency"]),
@@ -24,35 +23,29 @@ export async function POST(request: Request) {
   }
   const { plan } = parsed.data;
 
-  const stripe = getStripe();
+  try {
+    const stripe = getStripe();
+    // Always resolve to a valid live customer (recreates a stale/test-mode one).
+    const customerId = await ensureStripeCustomer(session.profile, session.email);
 
-  // Reuse the Stripe customer if we already created one, else create it and
-  // persist the id via the service-role client (stripe_customer_id is guarded).
-  let customerId = session.profile.stripe_customer_id;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: session.email,
-      metadata: { userId: session.userId },
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      client_reference_id: session.userId,
+      line_items: [{ price: priceIdForPlan(plan), quantity: 1 }],
+      subscription_data: { metadata: { userId: session.userId, plan } },
+      metadata: { userId: session.userId, plan },
+      success_url: `${baseUrl()}/dashboard?checkout=success`,
+      cancel_url: `${baseUrl()}/pricing?checkout=cancelled`,
+      allow_promotion_codes: true,
     });
-    customerId = customer.id;
-    const admin = createAdminClient();
-    await admin
-      .from("profiles")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", session.userId);
+
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    console.error("Checkout session creation failed:", err);
+    return NextResponse.json(
+      { error: "Could not start checkout. Please try again." },
+      { status: 500 }
+    );
   }
-
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    client_reference_id: session.userId,
-    line_items: [{ price: priceIdForPlan(plan), quantity: 1 }],
-    subscription_data: { metadata: { userId: session.userId, plan } },
-    metadata: { userId: session.userId, plan },
-    success_url: `${baseUrl()}/dashboard?checkout=success`,
-    cancel_url: `${baseUrl()}/pricing?checkout=cancelled`,
-    allow_promotion_codes: true,
-  });
-
-  return NextResponse.json({ url: checkout.url });
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUserAndProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, ensureStripeCustomer } from "@/lib/stripe";
 import { KEEP_SITE_PRICE_USD } from "@/lib/site-status";
 import type { SiteRow } from "@/lib/types";
 
@@ -47,36 +47,42 @@ export async function POST(
     return NextResponse.json({ alreadyKept: true });
   }
 
-  const stripe = getStripe();
+  try {
+    const stripe = getStripe();
+    const customerId = await ensureStripeCustomer(session.profile, session.email);
 
-  // Reuse the Agency customer if one exists so the payment lands on their record.
-  const customerId = session.profile.stripe_customer_id ?? undefined;
-
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "payment",
-    ...(customerId ? { customer: customerId } : { customer_email: session.email }),
-    client_reference_id: session.userId,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: KEEP_SITE_PRICE_USD * 100,
-          product_data: {
-            name: `Keep "${site.business_name}" live permanently`,
-            description:
-              "One-time fee to publish this approved website for your client without the 48-hour limit.",
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer: customerId,
+      client_reference_id: session.userId,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: KEEP_SITE_PRICE_USD * 100,
+            product_data: {
+              name: `Keep "${site.business_name}" live permanently`,
+              description:
+                "One-time fee to publish this approved website for your client without the 48-hour limit.",
+            },
           },
         },
-      },
-    ],
-    metadata: { kind: "keep_site", userId: session.userId, siteId },
-    payment_intent_data: {
+      ],
       metadata: { kind: "keep_site", userId: session.userId, siteId },
-    },
-    success_url: `${baseUrl()}/dashboard/${siteId}?kept=success`,
-    cancel_url: `${baseUrl()}/dashboard/${siteId}`,
-  });
+      payment_intent_data: {
+        metadata: { kind: "keep_site", userId: session.userId, siteId },
+      },
+      success_url: `${baseUrl()}/dashboard/${siteId}?kept=success`,
+      cancel_url: `${baseUrl()}/dashboard/${siteId}`,
+    });
 
-  return NextResponse.json({ url: checkout.url });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    console.error("Keep-site checkout failed:", err);
+    return NextResponse.json(
+      { error: "Could not start checkout. Please try again." },
+      { status: 500 }
+    );
+  }
 }

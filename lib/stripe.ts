@@ -1,6 +1,8 @@
 import "server-only";
 import Stripe from "stripe";
+import { createAdminClient } from "./supabase/admin";
 import type { Plan, SubscriptionStatus } from "./plans";
+import type { ProfileRow } from "./types";
 
 let _stripe: Stripe | null = null;
 export function getStripe(): Stripe {
@@ -10,6 +12,41 @@ export function getStripe(): Stripe {
     _stripe = new Stripe(key);
   }
   return _stripe;
+}
+
+/**
+ * Returns a VALID Stripe customer id for this user, creating one if needed.
+ * A stored id can be stale — e.g. left over from a test-mode session, so it
+ * doesn't exist in live mode. We verify it and recreate if it's missing or
+ * deleted, persisting the fresh id. This prevents checkout from crashing with
+ * "No such customer".
+ */
+export async function ensureStripeCustomer(
+  profile: ProfileRow,
+  email: string | undefined
+): Promise<string> {
+  const stripe = getStripe();
+  const admin = createAdminClient();
+
+  const existing = profile.stripe_customer_id;
+  if (existing) {
+    try {
+      const c = await stripe.customers.retrieve(existing);
+      if (!(c as Stripe.DeletedCustomer).deleted) return existing;
+    } catch {
+      // Falls through to recreate — the stored id is invalid for this mode.
+    }
+  }
+
+  const customer = await stripe.customers.create({
+    email,
+    metadata: { userId: profile.id },
+  });
+  await admin
+    .from("profiles")
+    .update({ stripe_customer_id: customer.id })
+    .eq("id", profile.id);
+  return customer.id;
 }
 
 // Maps our paid plans to their configured Stripe Price IDs.
