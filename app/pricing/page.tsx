@@ -2,8 +2,10 @@ import Link from "next/link";
 import { getUserAndProfile } from "@/lib/auth";
 import { PLAN_LIMITS, type Plan } from "@/lib/plans";
 import { KEEP_SITE_PRICE_USD } from "@/lib/site-status";
+import { isTestAccount } from "@/lib/testers";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
+import { TestPlanSwitcher } from "@/components/TestPlanSwitcher";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +54,7 @@ export default async function PricingPage() {
   const isAuthed = !!session;
   const currentPlan: Plan = session?.profile.plan ?? "none";
   const hasBilling = !!session?.profile.stripe_customer_id;
+  const isTester = isTestAccount(session?.email);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
@@ -71,6 +74,12 @@ export default async function PricingPage() {
           publish.
         </p>
       </div>
+
+      {isTester && (
+        <div className="mx-auto mt-6 max-w-xl">
+          <TestPlanSwitcher currentPlan={currentPlan} />
+        </div>
+      )}
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {PLANS.map((p) => {
