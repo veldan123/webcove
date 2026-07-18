@@ -258,7 +258,7 @@ function LoginForm() {
           setError(null);
           setMessage(null);
         }}
-        className="mt-6 text-center text-sm text-foreground/60 hover:text-foreground"
+        className="mt-4 w-full py-3 text-center text-sm text-foreground/60 hover:text-foreground"
       >
         {mode === "signin"
           ? "Don't have an account? Sign up"
