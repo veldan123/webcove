@@ -49,7 +49,13 @@ export async function POST(request: Request) {
   };
 
   // Cap pages by the customer's plan; `none` falls back to the Basic preview cap.
-  const maxPages = getPlanLimits(session.profile.plan).maxPagesPerSite;
+  // Also cap the INITIAL generation to a few pages so the model finishes within
+  // the serverless function timeout (Vercel Hobby = 60s). The model needs
+  // ~120 tokens/sec, so a full 10-page site would overrun and the request would
+  // fail with a gateway timeout ("network error"). Users can add more pages by
+  // chatting with the editor afterward.
+  const planMaxPages = getPlanLimits(session.profile.plan).maxPagesPerSite;
+  const maxPages = Math.min(planMaxPages, 3);
 
   let generated;
   try {

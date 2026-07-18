@@ -22,6 +22,7 @@ export async function searchPexels(
   opts: {
     orientation?: "landscape" | "portrait" | "square";
     exclude?: Set<number>;
+    page?: number; // vary this across parallel calls for more distinct results
   } = {}
 ): Promise<{ url: string; id: number } | null> {
   const key = process.env.PEXELS_API_KEY;
@@ -30,6 +31,7 @@ export async function searchPexels(
     const params = new URLSearchParams({
       query: query.slice(0, 100),
       per_page: "12",
+      page: String(opts.page && opts.page > 0 ? opts.page : 1),
       orientation: opts.orientation || "landscape",
     });
     const ctrl = new AbortController();

@@ -68,15 +68,16 @@ Choosing a PALETTE:
 
 Rules:
 - The first page MUST have slug "home", order 0, and begin with a "hero" section.
-- Make it feel COMPLETE, long, and professional — like a real, polished business site, not a thin template. The home page should have 8–10 sections. A strong order is: hero → stats → services (or menu) → features (why us) → about → gallery → testimonials → cta → contact. Use a rich mix of section types; don't repeat the same layout back to back.
-- Other pages should also be full (3–5 sections each), never a bare hero + one block.
+- Make it feel COMPLETE and professional — like a real, polished business site, not a thin template. The home page should have 6–7 sections. A strong order is: hero → stats → services (or menu) → features (why us) → about → gallery/testimonials → cta (with contact details in the cta or a short contact section). Use a rich mix of section types; don't repeat the same layout back to back.
+- Other pages should have 2–3 focused sections each, never a bare hero + one block.
+- Keep copy specific and punchy — a few tight sentences per block, not long paragraphs. This keeps generation fast and the site readable.
 - HERO: always give it a "badge", a "ctaText" + "ctaTarget", usually a "secondaryCtaText" + target, 2–3 "highlights", and an "imagePrompt" describing a great full-bleed photo (e.g. "steaming bowls of Vietnamese pho on a rustic table, overhead").
 - BUTTONS MUST GO SOMEWHERE REAL: set every ctaTarget / secondaryCtaTarget / buttonTarget to the slug of a page you are creating ("menu", "about", "contact", etc.) or "contact". Never point a "See our menu" button at contact — point it at the menu page. Make sure any page you reference actually exists in your pages array.
 - Add a "stats" section on the home page with 3–4 impressive, believable numbers.
 - For a business that shows products/menu/services, give services items a "price" (when it makes sense), a "badge" on 1–2 standouts, and an "imagePrompt" for each item so it gets a real photo.
 - Write specific, benefit-driven copy grounded in the business details. Never use lorem ipsum.
-- Include a "contact" section using the details provided; omit fields the customer didn't give.
-- Produce AT MOST {{MAX_PAGES}} pages. Make each page substantial.
+- Include the contact details provided (in a "contact" section or the cta); omit fields the customer didn't give.
+- Produce EXACTLY {{MAX_PAGES}} pages (home + the most important others). Make each page focused and complete.
 - Output valid JSON only.
 `.trim();
 
@@ -129,7 +130,8 @@ About Webcove (use to answer questions accurately):
   chatting with this assistant, and publish it to a public URL.
 - Generating and previewing sites is FREE. Publishing needs a paid plan:
   Basic $15/mo (up to 3 pages, 1 published site), Pro $25/mo (up to 10 pages, 1 published site),
-  Agency $80/mo (up to 6 pages, unlimited published sites, 10 publishes/month, plus a cold-email tool).
+  Agency $35/mo (48-hour sample sites for client approval, 10 sample publishes/month, cold-email tool;
+  keep an approved site live permanently for a $25 one-time fee).
 - Sign in with Google or email/password. Billing is handled by Stripe; manage or cancel anytime.
 
 Always output valid JSON of exactly the shape above. Nothing else.

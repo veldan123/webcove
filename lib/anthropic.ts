@@ -214,59 +214,90 @@ export async function generateSite(input: {
   // Fill hero/service/gallery images. Prefer real Pexels stock photos (fast,
   // reliable, professional); fall back to Pollinations when Pexels isn't
   // configured or returns nothing.
-  const usedPhotoIds = new Set<number>();
-  const pick = async (
-    query: string,
-    fallback: () => string
-  ): Promise<string> => {
-    if (isPexelsConfigured()) {
-      const p = await searchPexels(query, {
-        orientation: "landscape",
-        exclude: usedPhotoIds,
-      });
-      if (p) {
-        usedPhotoIds.add(p.id);
-        return p.url;
-      }
-    }
-    return fallback();
+  //
+  // These lookups run in PARALLEL — doing them sequentially stacked ~15+ network
+  // round-trips on top of the model call and blew past the serverless timeout
+  // ("network error" for the user). We gather every image slot first, fetch all
+  // at once, then assign with best-effort dedup.
+  type ImageSlot = {
+    query: string;
+    fallback: () => string;
+    assign: (url: string) => void;
   };
+  const slots: ImageSlot[] = [];
 
   for (const page of pages) {
     for (const section of page.content.sections) {
       if (section.type === "hero" && !section.imageUrl) {
-        section.imageUrl = await pick(
-          section.imagePrompt || input.businessType,
-          () =>
+        const s = section;
+        slots.push({
+          query: s.imagePrompt || input.businessType,
+          fallback: () =>
             heroImageUrl(
-              section.subheadline || input.businessType,
+              s.subheadline || input.businessType,
               input.businessName + "hero" + page.slug
-            )
-        );
+            ),
+          assign: (url) => {
+            s.imageUrl = url;
+          },
+        });
       }
       if (section.type === "services") {
         for (const item of section.items) {
           if (!item.imageUrl) {
-            item.imageUrl = await pick(
-              item.imagePrompt || `${item.title} ${input.businessType}`,
-              () => cardImageUrl(item.title, input.businessName + item.title)
-            );
+            slots.push({
+              query: item.imagePrompt || `${item.title} ${input.businessType}`,
+              fallback: () =>
+                cardImageUrl(item.title, input.businessName + item.title),
+              assign: (url) => {
+                item.imageUrl = url;
+              },
+            });
           }
         }
       }
       if (section.type === "gallery") {
         for (const item of section.items) {
           if (!item.imageUrl) {
-            item.imageUrl = await pick(
-              `${item.caption} ${input.businessType}`,
-              () =>
-                galleryImageUrl(item.caption, input.businessName + item.caption)
-            );
+            slots.push({
+              query: `${item.caption} ${input.businessType}`,
+              fallback: () =>
+                galleryImageUrl(item.caption, input.businessName + item.caption),
+              assign: (url) => {
+                item.imageUrl = url;
+              },
+            });
           }
         }
       }
     }
   }
+
+  const pexelsOn = isPexelsConfigured();
+  const results = await Promise.all(
+    slots.map((slot, i) =>
+      pexelsOn
+        ? searchPexels(slot.query, {
+            orientation: "landscape",
+            // Spread across pages so identical queries don't all return photo #1.
+            page: 1 + (i % 3),
+          }).catch(() => null)
+        : Promise.resolve(null)
+    )
+  );
+
+  // Assign in order; if a photo id was already used, fall back so we don't
+  // repeat the same picture across the site.
+  const usedPhotoIds = new Set<number>();
+  slots.forEach((slot, i) => {
+    const r = results[i];
+    if (r && !usedPhotoIds.has(r.id)) {
+      usedPhotoIds.add(r.id);
+      slot.assign(r.url);
+    } else {
+      slot.assign(slot.fallback());
+    }
+  });
 
   return { theme, pages };
 }
