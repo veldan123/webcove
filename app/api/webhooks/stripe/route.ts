@@ -66,15 +66,23 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
 
-        // One-time "keep this approved sample live permanently" payment.
-        if (s.mode === "payment" || s.metadata?.kind === "keep_site") {
-          const keepSiteId = s.metadata?.siteId as string | undefined;
-          if (keepSiteId) {
+        // One-time site payments (mode: "payment"): keep a sample, or remove
+        // the Webcove badge — distinguished by metadata.kind.
+        if (s.mode === "payment") {
+          const kind = s.metadata?.kind as string | undefined;
+          const paidSiteId = s.metadata?.siteId as string | undefined;
+          if (paidSiteId && kind === "keep_site") {
             const { error } = await admin
               .from("sites")
               .update({ kept: true, published: true, publish_expires_at: null })
-              .eq("id", keepSiteId);
+              .eq("id", paidSiteId);
             if (error) console.error("keep_site update failed:", error);
+          } else if (paidSiteId && kind === "remove_branding") {
+            const { error } = await admin
+              .from("sites")
+              .update({ branding_removed: true })
+              .eq("id", paidSiteId);
+            if (error) console.error("remove_branding update failed:", error);
           }
           break;
         }

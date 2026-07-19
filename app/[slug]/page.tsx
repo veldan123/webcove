@@ -46,6 +46,7 @@ export default async function PublicSitePage({
       page={home.content}
       nav={nav}
       basePath={`/${slug}`}
+      showBranding={!data.site.branding_removed}
     />
   );
 }

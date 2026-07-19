@@ -94,12 +94,14 @@ export function SiteTemplate({
   page,
   nav,
   basePath,
+  showBranding = true,
 }: {
   theme?: SiteTheme | null;
   businessName: string;
   page: PageContent;
   nav?: SiteNavItem[];
   basePath?: string;
+  showBranding?: boolean;
 }) {
   const t = { ...DEFAULT_THEME, ...(theme ?? {}) };
   const tpl = TEMPLATES[t.template ?? "aurora"];
@@ -166,10 +168,28 @@ export function SiteTemplate({
       </div>
 
       <footer
-        className="px-6 py-8 text-center text-sm opacity-60"
+        className="px-6 py-8 text-center text-sm"
         style={{ borderTop: `1px solid ${t.textColor}1a` }}
       >
-        © {new Date().getFullYear()} {businessName}
+        <span className="opacity-60">
+          © {new Date().getFullYear()} {businessName}
+        </span>
+        {showBranding && (
+          <div className="mt-3">
+            <a
+              href="https://webcove.io?utm_source=badge&utm_medium=site"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium opacity-80 transition hover:opacity-100"
+              style={{
+                border: `1px solid ${t.textColor}22`,
+                color: t.textColor,
+              }}
+            >
+              <span aria-hidden>⚡</span> Built with Webcove
+            </a>
+          </div>
+        )}
       </footer>
     </div>
   );

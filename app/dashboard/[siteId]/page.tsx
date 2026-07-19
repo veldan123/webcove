@@ -56,6 +56,7 @@ export default async function WorkspacePage({
       kept={site.kept}
       publishedAt={site.published_at}
       publishExpiresAt={site.publish_expires_at}
+      brandingRemoved={site.branding_removed}
       theme={theme}
       initialPages={pages ?? []}
       plan={session.profile.plan}

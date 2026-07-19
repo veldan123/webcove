@@ -42,6 +42,7 @@ export default async function CustomDomainHome({
       page={home.content}
       nav={nav}
       basePath=""
+      showBranding={!data.site.branding_removed}
     />
   );
 }

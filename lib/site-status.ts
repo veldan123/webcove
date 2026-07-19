@@ -7,6 +7,9 @@ export const SAMPLE_MS = SAMPLE_HOURS * 60 * 60 * 1000;
 // One-time fee (USD) to keep an approved sample live permanently.
 export const KEEP_SITE_PRICE_USD = 25;
 
+// One-time fee (USD) to remove the "Built with Webcove" badge from a site.
+export const BRANDING_REMOVAL_PRICE_USD = 8.99;
+
 type SiteLike = Pick<
   SiteRow,
   "published" | "kept" | "publish_expires_at"

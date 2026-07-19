@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Plan, SubscriptionStatus } from "@/lib/plans";
-import { KEEP_SITE_PRICE_USD } from "@/lib/site-status";
+import { KEEP_SITE_PRICE_USD, BRANDING_REMOVAL_PRICE_USD } from "@/lib/site-status";
 
 function remainingLabel(expiresAt: string): string {
   const ms = new Date(expiresAt).getTime() - Date.now();
@@ -22,6 +22,7 @@ export function PublishControls({
   kept,
   publishedAt,
   publishExpiresAt,
+  brandingRemoved,
   subscriptionStatus,
   onChange,
 }: {
@@ -31,6 +32,7 @@ export function PublishControls({
   kept: boolean;
   publishedAt: string | null;
   publishExpiresAt: string | null;
+  brandingRemoved: boolean;
   subscriptionStatus: SubscriptionStatus;
   usageAtLimit: boolean;
   onChange: (published: boolean) => void;
@@ -38,6 +40,8 @@ export function PublishControls({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [keeping, setKeeping] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [showBrandingPrompt, setShowBrandingPrompt] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(publishExpiresAt);
   const [, force] = useState(0);
@@ -69,6 +73,8 @@ export function PublishControls({
       }
       if (data.publishExpiresAt) setExpiresAt(data.publishExpiresAt);
       onChange(true);
+      // Offer to remove the "Built with Webcove" badge right after publishing.
+      if (!brandingRemoved) setShowBrandingPrompt(true);
       router.refresh();
     } catch {
       setError("Network error.");
@@ -115,6 +121,32 @@ export function PublishControls({
     } catch {
       setError("Network error.");
       setKeeping(false);
+    }
+  }
+
+  // Pay the one-time fee to remove the "Built with Webcove" badge.
+  async function removeBranding() {
+    setRemoving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/sites/${siteId}/remove-branding`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.alreadyRemoved) {
+        setShowBrandingPrompt(false);
+        router.refresh();
+        return;
+      }
+      if (!res.ok || !data.url) {
+        setError(data.error || "Could not start checkout.");
+        setRemoving(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError("Network error.");
+      setRemoving(false);
     }
   }
 
@@ -195,6 +227,43 @@ export function PublishControls({
       {error && (
         <div className="absolute right-0 top-full z-10 mt-2 w-64 rounded-lg border border-red-500/30 bg-background p-3 text-xs text-red-500 shadow-lg">
           {error}
+        </div>
+      )}
+
+      {/* After-publish prompt: offer to remove the Webcove badge */}
+      {showBrandingPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-foreground/10 bg-background p-7 text-center shadow-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-2xl text-white">
+              ✓
+            </div>
+            <h2 className="mt-4 text-lg font-semibold tracking-tight">
+              You&apos;re live! 🎉
+            </h2>
+            <p className="mt-2 text-sm text-foreground/60">
+              Your site shows a small{" "}
+              <span className="font-medium text-foreground/80">
+                “⚡ Built with Webcove”
+              </span>{" "}
+              badge in the footer. Want to remove it and make the site fully
+              yours?
+            </p>
+            <button
+              onClick={removeBranding}
+              disabled={removing}
+              className="mt-5 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-strong disabled:opacity-50"
+            >
+              {removing
+                ? "…"
+                : `Remove badge — $${BRANDING_REMOVAL_PRICE_USD} one-time`}
+            </button>
+            <button
+              onClick={() => setShowBrandingPrompt(false)}
+              className="mt-2 w-full rounded-lg px-4 py-2 text-sm text-foreground/60 hover:text-foreground"
+            >
+              Keep the badge (it&apos;s fine)
+            </button>
+          </div>
         </div>
       )}
     </div>

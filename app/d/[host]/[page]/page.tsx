@@ -39,6 +39,7 @@ export default async function CustomDomainSubPage({
       page={row.content}
       nav={nav}
       basePath=""
+      showBranding={!data.site.branding_removed}
     />
   );
 }

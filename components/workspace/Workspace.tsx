@@ -18,6 +18,7 @@ export function Workspace({
   kept,
   publishedAt,
   publishExpiresAt,
+  brandingRemoved,
   theme,
   initialPages,
   plan,
@@ -34,6 +35,7 @@ export function Workspace({
   kept: boolean;
   publishedAt: string | null;
   publishExpiresAt: string | null;
+  brandingRemoved: boolean;
   theme: SiteTheme | null;
   initialPages: PageRow[];
   plan: Plan;
@@ -153,6 +155,7 @@ export function Workspace({
             kept={kept}
             publishedAt={publishedAt}
             publishExpiresAt={publishExpiresAt}
+            brandingRemoved={brandingRemoved}
             subscriptionStatus={subscriptionStatus}
             usageAtLimit={usageAtLimit}
             onChange={setPublished}
@@ -224,6 +227,7 @@ export function Workspace({
                 businessName={businessName}
                 page={selectedPage.content}
                 nav={nav}
+                showBranding={!brandingRemoved}
               />
             ) : (
               <p className="p-10 text-center text-sm text-foreground/50">
