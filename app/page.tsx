@@ -65,6 +65,12 @@ export default function HomePage() {
         </span>
         <nav className="flex items-center gap-3 text-sm">
           <Link
+            href="/guide"
+            className="rounded-md px-3 py-2 text-foreground/70 hover:text-foreground"
+          >
+            Guide
+          </Link>
+          <Link
             href="/pricing"
             className="rounded-md px-3 py-2 text-foreground/70 hover:text-foreground"
           >
