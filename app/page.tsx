@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { LiquidBackground } from "@/components/home/LiquidBackground";
 import { ScrollFx } from "@/components/home/ScrollFx";
+import { QuickGenerateForm } from "@/components/home/QuickGenerateForm";
 
 const STEPS = [
   {
@@ -114,27 +115,23 @@ export default function HomePage() {
           <div
             data-reveal
             style={{ "--reveal-delay": "240ms" } as React.CSSProperties}
-            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            <Link
-              href="/login"
-              className="w-full rounded-lg bg-primary px-6 py-3 font-medium text-white shadow-md shadow-primary/25 transition hover:-translate-y-0.5 hover:bg-primary-strong sm:w-auto"
-            >
-              Sign in with Google
-            </Link>
-            <Link
-              href="/pricing"
-              className="w-full rounded-lg border border-foreground/15 px-6 py-3 font-medium transition hover:border-primary/40 hover:text-primary sm:w-auto"
-            >
-              See pricing
-            </Link>
+            <QuickGenerateForm />
           </div>
           <p
             data-reveal
             style={{ "--reveal-delay": "320ms" } as React.CSSProperties}
             className="mt-4 text-sm text-foreground/50"
           >
-            Generating and previewing is free. You only need a plan to publish.
+            Prefer to look around first?{" "}
+            <Link href="/pricing" className="text-primary hover:underline">
+              See pricing
+            </Link>{" "}
+            or{" "}
+            <Link href="/guide" className="text-primary hover:underline">
+              read the guide
+            </Link>
+            .
           </p>
         </section>
 
