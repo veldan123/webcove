@@ -32,13 +32,14 @@ export function QuickGenerateForm() {
   }
 
   const field =
-    "w-full rounded-lg border border-foreground/15 bg-background/70 px-4 py-3 text-left outline-none backdrop-blur-sm focus:border-primary/50";
+    "w-full rounded-lg border border-foreground/15 bg-background/70 px-4 py-3 text-left outline-none backdrop-blur-sm placeholder:text-foreground/60 focus:border-primary/50";
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="mx-auto mt-8 w-full max-w-md space-y-3 rounded-2xl border border-foreground/10 bg-background/60 p-5 text-left shadow-lg shadow-primary/5 backdrop-blur-sm"
-    >
+    <div className="wc-beam mx-auto mt-8 w-full max-w-md">
+      <form
+        onSubmit={onSubmit}
+        className="wc-beam-inner space-y-3 p-5 text-left backdrop-blur-md"
+      >
       <input
         required
         className={field}
@@ -67,10 +68,11 @@ export function QuickGenerateForm() {
       >
         Generate my website — free
       </button>
-      <p className="text-center text-xs text-foreground/50">
-        Free to build &amp; preview. You&apos;ll create a quick account, then it
-        builds automatically.
-      </p>
-    </form>
+        <p className="text-center text-xs text-foreground/60">
+          Free to build &amp; preview. You&apos;ll create a quick account, then
+          it builds automatically.
+        </p>
+      </form>
+    </div>
   );
 }

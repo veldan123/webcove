@@ -12,6 +12,12 @@
   --glow-a: oklch(0.72 0.14 272);
   --glow-b: oklch(0.75 0.13 310);
   --glow-c: oklch(0.8 0.1 220);
+
+  /* Travelling border lights — brighter than the backdrop glows so the beam
+     still reads as light on a white surface. */
+  --beam-1: oklch(0.58 0.2 272);
+  --beam-2: oklch(0.66 0.18 302);
+  --beam-3: oklch(0.7 0.14 215);
 }
 
 @theme inline {
@@ -37,6 +43,10 @@
     --glow-a: oklch(0.45 0.16 272);
     --glow-b: oklch(0.42 0.15 310);
     --glow-c: oklch(0.4 0.12 220);
+
+    --beam-1: oklch(0.74 0.18 272);
+    --beam-2: oklch(0.78 0.16 305);
+    --beam-3: oklch(0.8 0.13 215);
   }
 }
 
@@ -68,6 +78,64 @@ button,
 a,
 [role="button"] {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ---- Travelling light border (homepage generate box) ----
+   A conic gradient rotated via an @property angle so two bright arcs sweep the
+   edge like light travelling around it, with a blurred bloom behind. */
+@property --wc-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.wc-beam {
+  position: relative;
+  z-index: 0;
+  padding: 1.5px; /* the visible border thickness */
+  border-radius: 18px;
+  background:
+    conic-gradient(
+      from var(--wc-angle),
+      color-mix(in oklch, var(--foreground) 12%, transparent) 0deg,
+      var(--beam-1) 55deg,
+      var(--beam-2) 95deg,
+      color-mix(in oklch, var(--foreground) 12%, transparent) 150deg,
+      color-mix(in oklch, var(--foreground) 12%, transparent) 225deg,
+      var(--beam-3) 285deg,
+      color-mix(in oklch, var(--foreground) 12%, transparent) 360deg
+    );
+  animation: wc-beam-spin 7s linear infinite;
+}
+
+/* Soft bloom so the lights feel emissive rather than drawn. */
+.wc-beam::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  z-index: -1;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(16px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.wc-beam-inner {
+  border-radius: 16.5px;
+  background: color-mix(in oklch, var(--background) 88%, transparent);
+}
+
+@keyframes wc-beam-spin {
+  to {
+    --wc-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-beam {
+    animation: none;
+  }
 }
 
 /* ---- Scroll reveal ----
