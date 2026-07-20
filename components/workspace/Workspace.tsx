@@ -80,6 +80,9 @@ export function Workspace({
     !!publishExpiresAt &&
     new Date(publishExpiresAt).getTime() <= Date.now();
   const live = published && !sampleExpired;
+  // Agency 48h samples stay badge-free until the client approves (site kept).
+  const previewShowsBranding =
+    !brandingRemoved && !(plan === "agency" && !kept);
   const statusLabel = kept
     ? "Live"
     : plan === "agency" && published && !sampleExpired
@@ -100,7 +103,7 @@ export function Workspace({
   return (
     <div className="flex h-[calc(100vh-0px)] flex-col">
       <Suspense fallback={null}>
-        <KeptThankYou siteId={siteId} />
+        <KeptThankYou siteId={siteId} brandingRemoved={brandingRemoved} />
       </Suspense>
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground/10 px-4 py-3">
@@ -227,7 +230,7 @@ export function Workspace({
                 businessName={businessName}
                 page={selectedPage.content}
                 nav={nav}
-                showBranding={!brandingRemoved}
+                showBranding={previewShowsBranding}
               />
             ) : (
               <p className="p-10 text-center text-sm text-foreground/50">

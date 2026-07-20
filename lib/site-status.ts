@@ -38,6 +38,19 @@ export function isSampleExpired(site: SiteLike): boolean {
   );
 }
 
+/**
+ * Whether a published site should show the "Built with Webcove" badge.
+ * Hidden if the owner paid to remove it, and hidden on Agency 48-hour SAMPLES
+ * (unkept sites with an expiry) so the client sees a clean site to approve.
+ */
+export function siteShowsBranding(
+  site: Pick<SiteRow, "branding_removed" | "kept" | "publish_expires_at">
+): boolean {
+  if (site.branding_removed) return false;
+  if (!site.kept && !!site.publish_expires_at) return false; // Agency sample
+  return true;
+}
+
 /** Milliseconds left in an active sample window, or 0 if not an active sample. */
 export function sampleTimeRemainingMs(site: SiteLike): number {
   if (site.kept || !site.publish_expires_at) return 0;

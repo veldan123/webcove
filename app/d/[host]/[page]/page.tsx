@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedSiteByDomain } from "@/lib/public-site";
+import { siteShowsBranding } from "@/lib/site-status";
 import { SiteTemplate } from "@/components/SiteTemplate";
+import { WebcoveBadge } from "@/components/WebcoveBadge";
 
 export const revalidate = 60;
 
@@ -33,13 +35,16 @@ export default async function CustomDomainSubPage({
   const nav = data.pages.map((p) => ({ title: p.title, slug: p.slug }));
 
   return (
-    <SiteTemplate
-      theme={data.theme}
-      businessName={data.site.business_name}
-      page={row.content}
-      nav={nav}
-      basePath=""
-      showBranding={!data.site.branding_removed}
-    />
+    <>
+      <SiteTemplate
+        theme={data.theme}
+        businessName={data.site.business_name}
+        page={row.content}
+        nav={nav}
+        basePath=""
+        showBranding={false}
+      />
+      {siteShowsBranding(data.site) && <WebcoveBadge />}
+    </>
   );
 }

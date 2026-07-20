@@ -73,8 +73,10 @@ export function PublishControls({
       }
       if (data.publishExpiresAt) setExpiresAt(data.publishExpiresAt);
       onChange(true);
-      // Offer to remove the "Built with Webcove" badge right after publishing.
-      if (!brandingRemoved) setShowBrandingPrompt(true);
+      // Offer to remove the badge right after publishing. Agency users don't
+      // get this here — their 48h sample carries no badge; they're prompted
+      // after the client approves (see KeptThankYou).
+      if (!brandingRemoved && plan !== "agency") setShowBrandingPrompt(true);
       router.refresh();
     } catch {
       setError("Network error.");
