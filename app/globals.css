@@ -80,6 +80,40 @@ a,
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.06);
 }
 
+/* ---- Generation progress bar ----
+   A moving sheen so the bar always reads as "working", even while it's
+   creeping slowly at the end. A motionless bar makes people assume it broke. */
+.wc-progress {
+  position: relative;
+  overflow: hidden;
+}
+.wc-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 80%
+  );
+  animation: wc-sheen 1.6s linear infinite;
+}
+@keyframes wc-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-progress::after {
+    animation: none;
+    opacity: 0.25;
+  }
+}
+
 /* ---- Travelling light border (homepage generate box) ----
    A conic gradient rotated via an @property angle so two bright arcs sweep the
    edge like light travelling around it, with a blurred bloom behind. */

@@ -162,7 +162,7 @@ export default function NewSitePage() {
         </button>
         {loading && (
           <p className="text-center text-xs text-foreground/50">
-            This can take 15–30 seconds while the AI writes your copy.
+            This usually takes 1–2 minutes while the AI writes your copy.
           </p>
         )}
       </form>
