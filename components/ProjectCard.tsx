@@ -14,6 +14,8 @@ export function ProjectCard({ site }: { site: SiteRow }) {
   const isSample = !site.kept && !!site.publish_expires_at;
   const badge = site.kept
     ? { text: "Live", tone: "green" }
+    : site.rejected
+    ? { text: "Rejected", tone: "red" }
     : isSample
       ? isSiteLive(site)
         ? { text: "Sample live", tone: "amber" }
@@ -26,7 +28,9 @@ export function ProjectCard({ site }: { site: SiteRow }) {
       ? "bg-green-500/15 text-green-600 dark:text-green-400"
       : badge.tone === "amber"
         ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-        : "bg-foreground/10 text-foreground/60";
+        : badge.tone === "red"
+          ? "bg-red-500/15 text-red-600 dark:text-red-400"
+          : "bg-foreground/10 text-foreground/60";
 
   return (
     <button

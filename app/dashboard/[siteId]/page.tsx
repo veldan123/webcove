@@ -54,6 +54,7 @@ export default async function WorkspacePage({
       businessName={site.business_name}
       published={site.published}
       kept={site.kept}
+      rejected={site.rejected}
       publishedAt={site.published_at}
       publishExpiresAt={site.publish_expires_at}
       brandingRemoved={site.branding_removed}

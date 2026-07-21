@@ -167,6 +167,7 @@ export interface SiteRow {
   published_at: string | null;
   publish_expires_at: string | null; // Agency 48h sample expiry; null = permanent
   kept: boolean; // paid one-time to keep an approved sample live permanently
+  rejected: boolean; // client turned the sample down (publish still counted)
   branding_removed: boolean; // paid one-time to remove the "Built with Webcove" badge
   custom_domain: string | null;
   custom_domain_verified: boolean;

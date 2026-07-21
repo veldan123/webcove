@@ -16,6 +16,7 @@ export function Workspace({
   businessName,
   published: initialPublished,
   kept,
+  rejected,
   publishedAt,
   publishExpiresAt,
   brandingRemoved,
@@ -33,6 +34,7 @@ export function Workspace({
   businessName: string;
   published: boolean;
   kept: boolean;
+  rejected: boolean;
   publishedAt: string | null;
   publishExpiresAt: string | null;
   brandingRemoved: boolean;
@@ -156,6 +158,7 @@ export function Workspace({
             published={published}
             plan={plan}
             kept={kept}
+            rejected={rejected}
             publishedAt={publishedAt}
             publishExpiresAt={publishExpiresAt}
             brandingRemoved={brandingRemoved}
