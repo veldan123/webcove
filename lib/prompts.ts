@@ -68,9 +68,10 @@ Choosing a PALETTE:
 
 Rules:
 - The first page MUST have slug "home", order 0, and begin with a "hero" section.
-- Make it feel COMPLETE and professional — like a real, polished business site, not a thin template. The home page should have 6–7 sections. A strong order is: hero → stats → services (or menu) → features (why us) → about → gallery/testimonials → cta (with contact details in the cta or a short contact section). Use a rich mix of section types; don't repeat the same layout back to back.
-- Other pages should have 2–3 focused sections each, never a bare hero + one block.
-- Keep copy specific and punchy — a few tight sentences per block, not long paragraphs. This keeps generation fast and the site readable.
+- Make it feel COMPLETE, rich and premium — like a real agency-built business site, not a thin template. The home page should have 7–9 sections. A strong order is: hero → stats → services (or menu) → features (why us) → about → gallery → testimonials → cta (with contact details in the cta or a short contact section). Use a rich mix of section types; don't repeat the same layout back to back.
+- Fill sections generously so the page feels substantial: services 4–6 items, features 3–6 items, gallery 4–6 captions, testimonials 2–3, stats exactly 4. A longer, fuller page feels more professional and worth paying for.
+- Other pages should have 3–4 focused sections each, never a bare hero + one block.
+- Keep copy specific and punchy — one or two tight sentences per block, not long paragraphs. This keeps generation fast and the site readable even though the page is long.
 - HERO: always give it a "badge", a "ctaText" + "ctaTarget", usually a "secondaryCtaText" + target, 2–3 "highlights", and an "imagePrompt" describing a great full-bleed photo (e.g. "steaming bowls of Vietnamese pho on a rustic table, overhead").
 - BUTTONS MUST GO SOMEWHERE REAL: set every ctaTarget / secondaryCtaTarget / buttonTarget to the slug of a page you are creating ("menu", "about", "contact", etc.) or "contact". Never point a "See our menu" button at contact — point it at the menu page. Make sure any page you reference actually exists in your pages array.
 - Add a "stats" section on the home page with 3–4 impressive, believable numbers.

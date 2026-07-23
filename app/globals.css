@@ -201,15 +201,75 @@ a,
   }
 }
 
-/* ---- Generated-site scroll reveal (armed by SiteMotion) ---- */
+/* ---- Generated-site scroll reveal (armed by SiteMotion) ----
+   Supports a per-element stagger via inline --wc-delay, so grids of cards
+   fade up one after another instead of all at once. */
 .wc-reveal {
   opacity: 0;
-  transform: translateY(26px);
+  transform: translateY(30px) scale(0.985);
   transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--wc-delay, 0ms);
 }
 .wc-reveal.wc-in {
   opacity: 1;
   transform: none;
+}
+
+/* ---- Cinematic hero motion for generated sites ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .wc-kenburns {
+    animation: wc-kenburns 22s ease-out both;
+  }
+  .wc-float {
+    animation: wc-float 9s ease-in-out infinite;
+  }
+  .wc-float-slow {
+    animation: wc-float 13s ease-in-out infinite;
+  }
+  .wc-bounce {
+    animation: wc-bounce 2.2s ease-in-out infinite;
+  }
+  .wc-anim-gradient {
+    background-size: 200% 200%;
+    animation: wc-gradient 12s ease infinite;
+  }
+}
+@keyframes wc-kenburns {
+  from {
+    transform: scale(1.12) translateY(2%);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes wc-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -24px, 0);
+  }
+}
+@keyframes wc-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+@keyframes wc-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
